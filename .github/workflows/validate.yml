@@ -1,0 +1,64 @@
+name: Validate
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform-validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Run TFLint
+        run: |
+          tflint --init
+          tflint
+
+      - name: Validate Examples
+        run: |
+          for example in examples/*/; do
+            if [ -d "$example" ]; then
+              echo "Validating example: $example"
+              cd "$example"
+              terraform init -backend=false
+              terraform validate
+              cd -
+            fi
+          done
+
+      - name: Generate documentation
+        run: make generate-docs
+
+      - name: Check for documentation changes
+        run: |
+          if ! git diff --exit-code README.md; then
+            echo "Error: Documentation is out of date. Please run 'make generate-docs' and commit the changes."
+            exit 1
+          fi
+          echo "Documentation is up to date."

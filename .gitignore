@@ -1,0 +1,11 @@
+.idea
+
+# Terraform
+**/.terraform/*
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+# AI
+CLAUDE.md
