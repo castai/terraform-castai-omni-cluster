@@ -1,19 +1,46 @@
-variable "castai_api_token" {
-  type      = string
-  sensitive = true
+variable "gke_project_id" {
+  description = "GCP Project ID"
+  type        = string
+}
+
+variable "gke_cluster_location" {
+  description = "GKE Cluster Location"
+  type        = string
+}
+
+variable "gke_cluster_name" {
+  description = "GKE Cluster Name"
+  type        = string
 }
 
 variable "castai_api_url" {
-  type    = string
-  default = "https://api.cast.ai"
+  description = "Cast AI API URL"
+  type        = string
+  default     = "https://api.cast.ai"
 }
 
-variable "cluster_id" {
-  description = "Cast AI cluster ID"
-  type = string
+variable "castai_api_token" {
+  description = "Cast AI API Token"
+  type        = string
+  sensitive   = true
 }
 
 variable "organization_id" {
-  description = "Cast AI organization ID"
-  type = string
+  description = "Cast AI Organization ID"
+  type        = string
+}
+
+variable "cluster_id" {
+  description = "Cast AI Cluster ID"
+  type        = string
+}
+
+variable "cluster_name" {
+  description = "CAST AI cluster name"
+  type        = string
+}
+
+variable "external_cidr" {
+  description = "External CIDR for IPAM configuration"
+  type        = string
 }
