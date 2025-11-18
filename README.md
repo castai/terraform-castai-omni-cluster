@@ -97,7 +97,7 @@ module "castai_gcp_edge_location" {
 
 ```hcl
 terraform {
-  required_version = ">= 1.0"
+  required_version = ">= 1.11"
 
   required_providers {
     castai = {
