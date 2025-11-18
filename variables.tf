@@ -25,6 +25,27 @@ variable "cluster_name" {
   type        = string
 }
 
+variable "cluster_region" {
+  description = "K8s cluster region"
+  type        = string
+}
+
+variable "cluster_zone" {
+  description = "K8s cluster zone"
+  type        = string
+}
+
+variable "liqo_chart_version" {
+  description = "Liqo helm chart version"
+  type        = string
+  default     = "v1.0.1-5"
+}
+
+variable "api_server_address" {
+  description = "K8s API server address"
+  type        = string
+}
+
 variable "external_cidr" {
   description = "External CIDR for IPAM configuration"
   type        = string
@@ -33,4 +54,14 @@ variable "external_cidr" {
 variable "pod_cidr" {
   description = "Pod CIDR for network configuration"
   type        = string
+}
+
+variable "service_cidr" {
+  description = "Service CIDR for network configuration"
+  type        = string
+}
+
+variable "reserved_subnet_cidrs" {
+  description = "List of reserved subnet CIDR's"
+  type        = list(string)
 }

@@ -5,14 +5,29 @@ locals {
   castai_helm_repository = "https://castai.github.io/helm-charts"
 }
 
-# Enabling CAST AI Omni functionality for a givent cluster
+# OCI Cloud Resources (created first to provide attributes to edge location)
+module "liqo" {
+  source = "./modules/gke"
+
+  liqo_chart_version    = var.liqo_chart_version
+  cluster_name          = var.cluster_name
+  cluster_region        = var.cluster_region
+  cluster_zone          = var.cluster_zone
+  api_server_address    = var.api_server_address
+  pod_cidr              = var.pod_cidr
+  service_cidr          = var.service_cidr
+  reserved_subnet_cidrs = var.reserved_subnet_cidrs
+}
+
+# Enabling CAST AI Omni functionality for a given cluster
 resource "castai_omni_cluster" "this" {
   cluster_id      = var.cluster_id
   organization_id = var.organization_id
+
+  depends_on = [module.liqo]
 }
 
 # CAST AI Omni Agent Helm Release
-# This installs the omni-agent which manages the cluster connectivity and operations
 resource "helm_release" "omni_agent" {
   name             = local.omni_agent_release
   repository       = local.castai_helm_repository

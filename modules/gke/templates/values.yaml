@@ -1,0 +1,354 @@
+apiServer:
+  address: ${api_server_address}
+  ca: ""
+  trustedCA: false
+authentication:
+  awsConfig:
+    accessKeyId: ""
+    clusterName: ""
+    region: ""
+    secretAccessKey: ""
+    useExistingSecret: false
+  enabled: true
+common:
+  affinity: {}
+  extraArgs: []
+  globalAnnotations: {}
+  globalLabels:
+    liqo.io/managed: "true"
+  nodeSelector: {}
+  tolerations: []
+controllerManager:
+  config:
+    defaultLimitsEnforcement: None
+    enableNodeFailureController: false
+    enableResourceEnforcement: true
+  image:
+    name: ghcr.io/castai/liqo-controller-manager
+    version: ""
+  metrics:
+    service:
+      annotations: {}
+      labels: {}
+    serviceMonitor:
+      enabled: false
+      interval: ""
+      labels: {}
+      scrapeTimeout: ""
+  pod:
+    annotations: {}
+    extraArgs: []
+    labels: {}
+    priorityClassName: ""
+    resources:
+      limits: {}
+      requests: {}
+  replicas: 1
+crdReplicator:
+  image:
+    name: ghcr.io/castai/crd-replicator
+    version: ""
+  metrics:
+    podMonitor:
+      enabled: false
+      interval: ""
+      labels: {}
+      scrapeTimeout: ""
+  pod:
+    annotations: {}
+    extraArgs: []
+    labels: {}
+    priorityClassName: ""
+    resources:
+      limits: {}
+      requests: {}
+discovery:
+  config:
+    clusterID: ${cluster_name}
+    clusterLabels:
+      liqo.io/provider: gke
+      %{ if cluster_region != "" ~}topology.kubernetes.io/region: ${cluster_region}%{ endif }
+      %{ if cluster_zone != "" ~}topology.kubernetes.io/zone: ${cluster_zone}%{ endif }
+fullnameOverride: ""
+ipam:
+  external:
+    enabled: false
+    url: ""
+  externalCIDR: 10.70.0.0/16
+  internal:
+    graphviz: false
+    image:
+      name: ghcr.io/castai/ipam
+      version: ""
+    pod:
+      annotations: {}
+      extraArgs: []
+      labels: {}
+      priorityClassName: ""
+      resources:
+        limits: {}
+        requests: {}
+    replicas: 1
+    syncGracePeriod: 30s
+    syncInterval: 2m
+  internalCIDR: 10.80.0.0/16
+  podCIDR: ${pod_cidr}
+  pools:
+    ${pools_cidrs}
+  reservedSubnets:
+    ${reserved_subnets_cidrs}
+  serviceCIDR: ${service_cidr}
+metricAgent:
+  config:
+    timeout:
+      read: 30s
+      write: 30s
+  enabled: true
+  image:
+    name: ghcr.io/castai/metric-agent
+    version: ""
+  initContainer:
+    image:
+      name: ghcr.io/castai/cert-creator
+      version: ""
+  pod:
+    annotations: {}
+    extraArgs: []
+    labels: {}
+    priorityClassName: ""
+    resources:
+      limits: {}
+      requests: {}
+metrics:
+  enabled: false
+  prometheusOperator:
+    enabled: false
+nameOverride: ""
+networking:
+  clientResources:
+    - apiVersion: networking.liqo.io/v1beta1
+      resource: wggatewayclients
+  enabled: true
+  fabric:
+    config:
+      fullMasquerade: false
+      gatewayMasqueradeBypass: false
+      healthProbeBindAddressPort: "7071"
+      metricsAddressPort: "7072"
+      nftablesMonitor: false
+    image:
+      name: ghcr.io/castai/fabric
+      version: ""
+    pod:
+      annotations: {}
+      extraArgs: []
+      labels: {}
+      priorityClassName: ""
+      resources:
+        limits: {}
+        requests: {}
+    tolerations: []
+  gatewayTemplates:
+    container:
+      gateway:
+        image:
+          name: ghcr.io/castai/gateway
+          version: ""
+      geneve:
+        image:
+          name: ghcr.io/castai/gateway/geneve
+          version: ""
+      wireguard:
+        image:
+          name: ghcr.io/castai/gateway/wireguard
+          version: ""
+    ping:
+      interval: 2s
+      lossThreshold: 5
+      updateStatusInterval: 10s
+    replicas: 1
+    server:
+      service:
+        allocateLoadBalancerNodePorts: ""
+        annotations: {}
+    wireguard:
+      implementation: kernel
+  genevePort: 6091
+  reflectIPs: true
+  serverResources:
+    - apiVersion: networking.liqo.io/v1beta1
+      resource: wggatewayservers
+offloading:
+  createNode: true
+  defaultNodeResources:
+    cpu: "4"
+    ephemeral-storage: 20Gi
+    memory: 8Gi
+    pods: "110"
+  disableNetworkCheck: false
+  enabled: true
+  reflection:
+    configmap:
+      type: DenyList
+      workers: 3
+    endpointslice:
+      workers: 10
+    event:
+      type: DenyList
+      workers: 3
+    ingress:
+      ingressClasses: []
+      type: DenyList
+      workers: 3
+    persistentvolumeclaim:
+      workers: 3
+    pod:
+      workers: 10
+    secret:
+      type: DenyList
+      workers: 3
+    service:
+      loadBalancerClasses: []
+      type: DenyList
+      workers: 3
+    serviceaccount:
+      workers: 3
+    skip:
+      annotations:
+        - cloud.google.com/neg
+        - cloud.google.com/neg-status
+        - kubernetes.digitalocean.com/load-balancer-id
+        - ingress.kubernetes.io/backends
+        - ingress.kubernetes.io/forwarding-rule
+        - ingress.kubernetes.io/target-proxy
+        - ingress.kubernetes.io/url-map
+        - metallb.universe.tf/address-pool
+        - metallb.universe.tf/ip-allocated-from-pool
+        - metallb.universe.tf/loadBalancerIPs
+        - loadbalancer.openstack.org/load-balancer-id
+      labels: []
+  runtimeClass:
+    annotations: {}
+    handler: liqo
+    labels: {}
+    name: liqo
+    nodeSelector:
+      enabled: true
+      labels:
+        omni.cast.ai/type: virtual-node
+    tolerations:
+      enabled: true
+      tolerations:
+        - effect: NoExecute
+          key: virtual-node.omni.cast.ai/not-allowed
+          operator: Exists
+openshiftConfig:
+  enabled: false
+  virtualKubeletSCCs:
+    - anyuid
+    - privileged
+proxy:
+  config:
+    listeningPort: 8118
+  enabled: true
+  image:
+    name: ghcr.io/castai/proxy
+    version: ""
+  pod:
+    annotations: {}
+    extraArgs: []
+    labels: {}
+    priorityClassName: ""
+    resources:
+      limits: {}
+      requests: {}
+  replicas: 1
+  service:
+    annotations: {}
+    type: ClusterIP
+pullPolicy: IfNotPresent
+requirements:
+  kernel:
+    disabled: false
+    enabled: true
+storage:
+  enabled: true
+  realStorageClassName: ""
+  storageNamespace: liqo-storage
+  virtualStorageClassName: liqo
+tag: ${liqo_version}
+telemetry:
+  config:
+    schedule: ""
+  enabled: false
+  image:
+    name: ghcr.io/castai/telemetry
+    version: ""
+  pod:
+    annotations: {}
+    extraArgs: []
+    labels: {}
+    resources:
+      limits: {}
+      requests: {}
+uninstaller:
+  image:
+    name: ghcr.io/castai/uninstaller
+    version: ""
+  pod:
+    annotations: {}
+    extraArgs: []
+    labels: {}
+    resources:
+      limits: {}
+      requests: {}
+virtualKubelet:
+  extra:
+    annotations: {}
+    args: []
+    labels: {}
+    resources:
+      limits: {}
+      requests: {}
+  image:
+    name: ghcr.io/castai/virtual-kubelet
+    version: ""
+  metrics:
+    enabled: false
+    podMonitor:
+      enabled: false
+      interval: ""
+      labels: {}
+      scrapeTimeout: ""
+    port: 5872
+  replicas: 1
+  virtualNode:
+    extra:
+      annotations: {}
+      labels: {}
+webhook:
+  failurePolicy: Fail
+  image:
+    name: ghcr.io/castai/webhook
+    version: ""
+  metrics:
+    service:
+      annotations: {}
+      labels: {}
+    serviceMonitor:
+      enabled: false
+      interval: ""
+      labels: {}
+      scrapeTimeout: ""
+  patch:
+    image: k8s.gcr.io/ingress-nginx/kube-webhook-certgen:v1.1.1
+  pod:
+    annotations: {}
+    extraArgs: []
+    labels: {}
+    priorityClassName: ""
+    resources:
+      limits: {}
+      requests: {}
+  port: 9443
+  replicas: 1
