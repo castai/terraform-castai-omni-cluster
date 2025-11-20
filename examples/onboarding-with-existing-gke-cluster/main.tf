@@ -24,7 +24,7 @@ data "google_compute_subnetwork" "gke_subnet" {
   region  = local.cluster_region
 }
 
-module "castai-omni-cluster" {
+module "castai_omni_cluster" {
   source = "../.."
 
   api_url         = var.castai_api_url
@@ -36,25 +36,17 @@ module "castai-omni-cluster" {
   cluster_zone    = local.cluster_zone
 
   api_server_address    = "https://${data.google_container_cluster.gke.endpoint}"
-  external_cidr         = var.external_cidr
   pod_cidr              = data.google_container_cluster.gke.cluster_ipv4_cidr
   service_cidr          = data.google_container_cluster.gke.services_ipv4_cidr
   reserved_subnet_cidrs = [data.google_compute_subnetwork.gke_subnet.ip_cidr_range]
 }
 
-module "castai_gcp_edge_location" {
-  source = "github.com/castai/terraform-castai-omni-edge-location"
+module "castai_omni_edge_location_gcp" {
+  source = "github.com/castai/terraform-castai-omni-edge-location-gcp"
 
   cluster_id      = var.cluster_id
   organization_id = var.organization_id
+  region          = "europe-west4"
 
-  gcp = {
-    region = "europe-west4"
-  }
-
-  tags = {
-    ManagedBy = "terraform"
-  }
-
-  depends_on = [module.castai-omni-cluster]
+  depends_on = [module.castai_omni_cluster]
 }

@@ -46,12 +46,6 @@ variable "api_server_address" {
   type        = string
 }
 
-variable "external_cidr" {
-  description = "External CIDR for IPAM configuration"
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
 variable "pod_cidr" {
   description = "Pod CIDR for network configuration"
   type        = string

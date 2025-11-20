@@ -1,7 +1,6 @@
 variable "namespace" {
   description = "Kubernetes namespace to install liqo"
   type        = string
-  default     = "liqo"
 }
 
 variable "liqo_chart_version" {

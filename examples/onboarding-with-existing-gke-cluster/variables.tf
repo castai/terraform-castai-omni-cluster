@@ -34,8 +34,3 @@ variable "cluster_id" {
   description = "Cast AI Cluster ID"
   type        = string
 }
-
-variable "external_cidr" {
-  description = "External CIDR for IPAM configuration"
-  type        = string
-}

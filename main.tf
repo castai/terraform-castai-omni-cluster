@@ -9,6 +9,7 @@ locals {
 module "liqo" {
   source = "./modules/gke"
 
+  namespace             = local.omni_namespace
   liqo_chart_version    = var.liqo_chart_version
   cluster_name          = var.cluster_name
   cluster_region        = var.cluster_region
@@ -19,12 +20,67 @@ module "liqo" {
   reserved_subnet_cidrs = var.reserved_subnet_cidrs
 }
 
+# Wait for Liqo network resources to be ready before proceeding
+resource "null_resource" "wait_for_liqo_network" {
+  provisioner "local-exec" {
+    command = <<-EOT
+      set -e
+
+      echo "Waiting for Liqo networks.ipam.liqo.io CRD to be established..."
+      kubectl wait --for condition=established --timeout=300s crd/networks.ipam.liqo.io
+
+      echo "Waiting for external CIDR network resource to be created..."
+      timeout=300
+      elapsed=0
+      interval=5
+
+      while [ $elapsed -lt $timeout ]; do
+        CIDR=$(kubectl get networks.ipam.liqo.io -n ${local.omni_namespace} \
+          -l ipam.liqo.io/network-type=external-cidr \
+          -o jsonpath='{.items[0].status.cidr}' 2>/dev/null || echo "")
+
+        if [ -n "$CIDR" ]; then
+          echo "External CIDR network resource is ready: $CIDR"
+          exit 0
+        fi
+
+        echo "Waiting for external CIDR to be populated... ($elapsed/$timeout seconds)"
+        sleep $interval
+        elapsed=$((elapsed + interval))
+      done
+
+      echo "Timeout waiting for external CIDR network resource"
+      exit 1
+    EOT
+  }
+
+  depends_on = [module.liqo]
+}
+
+# Extract the external CIDR value from Liqo network resource
+data "external" "liqo_external_cidr" {
+  program = ["bash", "-c", <<-EOT
+    CIDR=$(kubectl get networks.ipam.liqo.io -n ${local.omni_namespace} \
+      -l ipam.liqo.io/network-type=external-cidr \
+      -o jsonpath='{.items[0].status.cidr}' 2>/dev/null)
+
+    if [ -z "$CIDR" ]; then
+      echo '{"cidr":""}'
+    else
+      echo "{\"cidr\":\"$CIDR\"}"
+    fi
+  EOT
+  ]
+
+  depends_on = [null_resource.wait_for_liqo_network]
+}
+
 # Enabling CAST AI Omni functionality for a given cluster
 resource "castai_omni_cluster" "this" {
   cluster_id      = var.cluster_id
   organization_id = var.organization_id
 
-  depends_on = [module.liqo]
+  depends_on = [null_resource.wait_for_liqo_network]
 }
 
 # CAST AI Omni Agent Helm Release
@@ -40,7 +96,7 @@ resource "helm_release" "omni_agent" {
   set = [
     {
       name  = "network.externalCIDR"
-      value = var.external_cidr
+      value = data.external.liqo_external_cidr.result.cidr
     },
     {
       name  = "network.podCIDR"
