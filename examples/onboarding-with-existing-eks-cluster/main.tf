@@ -1,9 +1,11 @@
 data "aws_eks_cluster" "eks" {
-  name = var.eks_cluster_name
+  name   = var.eks_cluster_name
+  region = var.eks_cluster_region
 }
 
 data "aws_vpc" "eks_vpc" {
-  id = data.aws_eks_cluster.eks.vpc_config[0].vpc_id
+  id     = data.aws_eks_cluster.eks.vpc_config[0].vpc_id
+  region = var.eks_cluster_region
 }
 
 data "aws_subnets" "eks_subnets" {
@@ -43,13 +45,15 @@ module "castai_omni_cluster" {
 module "castai_aws_edge_location" {
   source = "github.com/castai/terraform-castai-omni-edge-location-aws"
 
-  cluster_id      = var.cluster_id
-  organization_id = var.organization_id
+  providers = {
+    aws = aws.eu_west_1
+  }
+
+  cluster_id      = module.castai_omni_cluster.cluster_id
+  organization_id = module.castai_omni_cluster.organization_id
   region          = "eu-west-1"
 
   tags = {
     ManagedBy = "terraform"
   }
-
-  depends_on = [module.castai_omni_cluster]
 }

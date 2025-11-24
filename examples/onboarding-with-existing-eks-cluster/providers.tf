@@ -26,6 +26,11 @@ terraform {
 }
 
 provider "aws" {
+  alias  = "eu_west_1"
+  region = "eu-west-1"
+}
+
+provider "aws" {
   region = var.eks_cluster_region
 }
 
