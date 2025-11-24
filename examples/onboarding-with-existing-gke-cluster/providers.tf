@@ -21,6 +21,10 @@ provider "google" {
   project = var.gke_project_id
 }
 
+provider "aws" {
+  region = "eu-west-1"
+}
+
 provider "helm" {
   kubernetes = {
     host                   = "https://${data.google_container_cluster.gke.endpoint}"

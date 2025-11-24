@@ -51,3 +51,16 @@ module "castai_omni_edge_location_gcp" {
 
   depends_on = [module.castai_omni_cluster]
 }
+
+module "castai_omni_edge_location_aws" {
+  source = "github.com/castai/terraform-castai-omni-edge-location-aws"
+
+  cluster_id      = var.cluster_id
+  organization_id = var.organization_id
+
+  region = "eu-west-1"
+
+  tags = {
+    ManagedBy = "terraform"
+  }
+}
