@@ -9,7 +9,7 @@ variable "cluster_name" {
 }
 
 variable "cluster_region" {
-  description = "GKE region for topology labels (optional)"
+  description = "GKE region for topology labels"
   type        = string
 }
 

@@ -17,9 +17,10 @@ This Terraform module enables CAST AI Omni functionality for a Kubernetes cluste
 - CAST AI API credentials
 - `kubectl` configured with access to your Kubernetes cluster
 - Terraform >= 1.11
-- CAST AI Terraform provider >= 8.1.0
-- Helm provider >= 2.0
-- Null provider >= 3.0
+- CAST AI Terraform provider >= 8.3.0
+- Helm provider >= 3.1.1
+- Null provider >= 3.2.4
+- External provider >= 2.3.5
 - Google provider >= 4.0 (for GKE clusters)
 
 ## What This Module Installs
@@ -111,7 +112,7 @@ terraform {
   required_providers {
     castai = {
       source  = "castai/castai"
-      version = ">= 8.1.0"
+      version = ">= 8.3.0"
     }
     google = {
       source  = "hashicorp/google"
@@ -119,7 +120,15 @@ terraform {
     }
     helm = {
       source  = "hashicorp/helm"
-      version = ">= 2.0"
+      version = ">= 3.1.1"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = ">= 3.2.4"
+    }
+    external = {
+      source  = "hashicorp/external"
+      version = ">= 2.3.5"
     }
   }
 }
@@ -212,3 +221,64 @@ See the [examples/onboarding-with-existing-gke-cluster](./examples/onboarding-wi
 ## License
 
 MIT
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.11 |
+| <a name="requirement_castai"></a> [castai](#requirement\_castai) | >= 8.3.0 |
+| <a name="requirement_external"></a> [external](#requirement\_external) | >= 2.3.5 |
+| <a name="requirement_helm"></a> [helm](#requirement\_helm) | >= 3.1.1 |
+| <a name="requirement_null"></a> [null](#requirement\_null) | >= 3.2.4 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_castai"></a> [castai](#provider\_castai) | 8.3.0 |
+| <a name="provider_external"></a> [external](#provider\_external) | 2.3.5 |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
+
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_liqo_helm_values"></a> [liqo\_helm\_values](#module\_liqo\_helm\_values) | ./modules/gke | n/a |
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [castai_omni_cluster.this](https://registry.terraform.io/providers/castai/castai/latest/docs/resources/omni_cluster) | resource |
+| [helm_release.liqo](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
+| [helm_release.omni_agent](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
+| [null_resource.wait_for_liqo_network](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [external_external.liqo_external_cidr](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_api_server_address"></a> [api\_server\_address](#input\_api\_server\_address) | K8s API server address | `string` | n/a | yes |
+| <a name="input_api_token"></a> [api\_token](#input\_api\_token) | CAST AI API token (key) for authentication | `string` | n/a | yes |
+| <a name="input_api_url"></a> [api\_url](#input\_api\_url) | CAST AI API URL | `string` | `"https://api.cast.ai"` | no |
+| <a name="input_cluster_id"></a> [cluster\_id](#input\_cluster\_id) | CAST AI cluster ID to enable Omni functionality for | `string` | n/a | yes |
+| <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | CAST AI cluster name | `string` | n/a | yes |
+| <a name="input_cluster_region"></a> [cluster\_region](#input\_cluster\_region) | K8s cluster region | `string` | n/a | yes |
+| <a name="input_cluster_zone"></a> [cluster\_zone](#input\_cluster\_zone) | K8s cluster zone | `string` | n/a | yes |
+| <a name="input_liqo_chart_version"></a> [liqo\_chart\_version](#input\_liqo\_chart\_version) | Liqo helm chart version | `string` | `"v1.0.1-5"` | no |
+| <a name="input_organization_id"></a> [organization\_id](#input\_organization\_id) | CAST AI organization ID | `string` | n/a | yes |
+| <a name="input_pod_cidr"></a> [pod\_cidr](#input\_pod\_cidr) | Pod CIDR for network configuration | `string` | n/a | yes |
+| <a name="input_reserved_subnet_cidrs"></a> [reserved\_subnet\_cidrs](#input\_reserved\_subnet\_cidrs) | List of reserved subnet CIDR's | `list(string)` | n/a | yes |
+| <a name="input_service_cidr"></a> [service\_cidr](#input\_service\_cidr) | Service CIDR for network configuration | `string` | n/a | yes |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_cluster_id"></a> [cluster\_id](#output\_cluster\_id) | ID of the Omni-enabled cluster |
+| <a name="output_id"></a> [id](#output\_id) | ID of the castai\_omni\_cluster resource |
+| <a name="output_organization_id"></a> [organization\_id](#output\_organization\_id) | Organization ID of the Omni cluster |
+<!-- END_TF_DOCS -->
