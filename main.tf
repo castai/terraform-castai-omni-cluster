@@ -1,16 +1,20 @@
 locals {
+  liqo_chart_repo   = "https://castai.github.io/liqo"
+  liqo_chart_name   = "liqo"
+  liqo_release_name = "omni"
+  liqo_image_tag    = var.liqo_chart_version
+
   omni_namespace         = "castai-omni"
   omni_agent_release     = "omni-agent"
   omni_agent_chart       = "omni-agent"
   castai_helm_repository = "https://castai.github.io/helm-charts"
 }
 
-# OCI Cloud Resources (created first to provide attributes to edge location)
-module "liqo" {
+# Compute Liqo Helm chart configuration
+module "liqo_helm_values" {
   source = "./modules/gke"
 
-  namespace             = local.omni_namespace
-  liqo_chart_version    = var.liqo_chart_version
+  image_tag             = local.liqo_image_tag
   cluster_name          = var.cluster_name
   cluster_region        = var.cluster_region
   cluster_zone          = var.cluster_zone
@@ -18,6 +22,20 @@ module "liqo" {
   pod_cidr              = var.pod_cidr
   service_cidr          = var.service_cidr
   reserved_subnet_cidrs = var.reserved_subnet_cidrs
+}
+
+# Liqo Helm Release
+resource "helm_release" "liqo" {
+  name             = local.liqo_release_name
+  repository       = local.liqo_chart_repo
+  chart            = local.liqo_chart_name
+  version          = var.liqo_chart_version
+  namespace        = local.omni_namespace
+  create_namespace = true
+  cleanup_on_fail  = true
+  wait             = true
+
+  set = module.liqo_helm_values.set_values
 }
 
 # Wait for Liqo network resources to be ready before proceeding
@@ -54,7 +72,7 @@ resource "null_resource" "wait_for_liqo_network" {
     EOT
   }
 
-  depends_on = [module.liqo]
+  depends_on = [helm_release.liqo]
 }
 
 # Extract the external CIDR value from Liqo network resource

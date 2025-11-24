@@ -184,6 +184,7 @@ The module includes a GKE-specific submodule that:
 - Configures IPAM with pod, service, and reserved subnet CIDRs
 - Sets up topology labels for GKE region and zone
 - Enables virtual node capabilities for edge locations
+- Uses Liqo chart's default configurations for network fabric settings (health probes, metrics)
 
 ## Installation Order and Dependencies
 

@@ -1,10 +1,5 @@
-variable "namespace" {
-  description = "Kubernetes namespace to install liqo"
-  type        = string
-}
-
-variable "liqo_chart_version" {
-  description = "Version of the liqo Helm chart"
+variable "image_tag" {
+  description = "Docker image tag"
   type        = string
 }
 
@@ -16,7 +11,6 @@ variable "cluster_name" {
 variable "cluster_region" {
   description = "GKE region for topology labels (optional)"
   type        = string
-  default     = ""
 }
 
 variable "cluster_zone" {
