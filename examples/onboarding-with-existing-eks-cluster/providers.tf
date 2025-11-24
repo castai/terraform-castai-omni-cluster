@@ -1,0 +1,54 @@
+terraform {
+  required_version = ">= 1.11"
+
+  required_providers {
+    castai = {
+      source  = "castai/castai"
+      version = ">= 8.3.0"
+    }
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 5.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = ">= 3.1.1"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = ">= 3.2.4"
+    }
+    external = {
+      source  = "hashicorp/external"
+      version = ">= 2.3.5"
+    }
+  }
+}
+
+provider "aws" {
+  region = var.eks_cluster_region
+}
+
+provider "helm" {
+  kubernetes = {
+    host                   = data.aws_eks_cluster.eks.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
+    exec = {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args = [
+        "eks",
+        "get-token",
+        "--cluster-name",
+        data.aws_eks_cluster.eks.name,
+        "--region",
+        var.eks_cluster_region
+      ]
+    }
+  }
+}
+
+provider "castai" {
+  api_token = var.castai_api_token
+  api_url   = var.castai_api_url
+}

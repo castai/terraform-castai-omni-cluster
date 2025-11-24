@@ -1,3 +1,12 @@
+variable "k8s_provider" {
+  description = "Kubernetes cloud provider (gke, eks)"
+  type        = string
+  validation {
+    condition     = contains(["gke", "eks"], var.k8s_provider)
+    error_message = "Kubernetes provider must be one of: gke, eks"
+  }
+}
+
 variable "api_url" {
   description = "CAST AI API URL"
   type        = string
@@ -33,6 +42,7 @@ variable "cluster_region" {
 variable "cluster_zone" {
   description = "K8s cluster zone"
   type        = string
+  default     = ""
 }
 
 variable "liqo_chart_version" {

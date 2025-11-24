@@ -8,16 +8,34 @@ locals {
   omni_agent_release     = "omni-agent"
   omni_agent_chart       = "omni-agent"
   castai_helm_repository = "https://castai.github.io/helm-charts"
+
+  # Select the appropriate set_values based on k8s_provider
+  set_values = var.k8s_provider == "gke" ? module.liqo_helm_values_gke[0].set_values : module.liqo_helm_values_eks[0].set_values
 }
 
-# Compute Liqo Helm chart configuration
-module "liqo_helm_values" {
+# GKE-specific Liqo Helm chart configuration
+module "liqo_helm_values_gke" {
+  count  = var.k8s_provider == "gke" ? 1 : 0
   source = "./modules/gke"
 
   image_tag             = local.liqo_image_tag
   cluster_name          = var.cluster_name
   cluster_region        = var.cluster_region
   cluster_zone          = var.cluster_zone
+  api_server_address    = var.api_server_address
+  pod_cidr              = var.pod_cidr
+  service_cidr          = var.service_cidr
+  reserved_subnet_cidrs = var.reserved_subnet_cidrs
+}
+
+# EKS-specific Liqo Helm chart configuration
+module "liqo_helm_values_eks" {
+  count  = var.k8s_provider == "eks" ? 1 : 0
+  source = "./modules/eks"
+
+  image_tag             = local.liqo_image_tag
+  cluster_name          = var.cluster_name
+  cluster_region        = var.cluster_region
   api_server_address    = var.api_server_address
   pod_cidr              = var.pod_cidr
   service_cidr          = var.service_cidr
@@ -35,7 +53,7 @@ resource "helm_release" "liqo" {
   cleanup_on_fail  = true
   wait             = true
 
-  set = module.liqo_helm_values.set_values
+  set = local.set_values
 }
 
 # Wait for Liqo network resources to be ready before proceeding

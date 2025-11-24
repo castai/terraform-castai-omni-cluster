@@ -27,6 +27,7 @@ data "google_compute_subnetwork" "gke_subnet" {
 module "castai_omni_cluster" {
   source = "../.."
 
+  k8s_provider    = "gke"
   api_url         = var.castai_api_url
   api_token       = var.castai_api_token
   organization_id = var.organization_id
