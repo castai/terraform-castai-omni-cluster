@@ -5,11 +5,15 @@ This Terraform module enables CAST AI Omni functionality for a Kubernetes cluste
 ## Features
 
 - Enables CAST AI Omni functionality for existing clusters
-- Installs and configures Liqo for multi-cluster networking
+- **Support for GKE and EKS** (AKS coming soon)
+- Installs and configures Liqo for multi-cluster networking with cloud-specific optimizations
 - Deploys CAST AI Omni Agent for cluster management
-- Automatic extraction of network configuration from GKE clusters (including external CIDR from Liqo)
+- Automatic extraction of network configuration from clusters (including external CIDR from Liqo)
 - Support for both zonal and regional GKE clusters
 - Automatic synchronization with Liqo IPAM for external CIDR allocation
+- Cloud-specific configurations:
+  - **GKE:** Uses default Liqo network fabric settings
+  - **EKS:** Configures AWS Network Load Balancer (NLB) and full masquerade for pod traffic
 
 ## Prerequisites
 
@@ -22,6 +26,7 @@ This Terraform module enables CAST AI Omni functionality for a Kubernetes cluste
 - Null provider >= 3.2.4
 - External provider >= 2.3.5
 - Google provider >= 4.0 (for GKE clusters)
+- AWS provider >= 5.0 (for EKS clusters)
 
 ## What This Module Installs
 
@@ -63,6 +68,7 @@ data "google_compute_subnetwork" "gke_subnet" {
 module "castai-omni-cluster" {
   source = "../.."
 
+  k8s_provider    = "gke"  # Specify cloud provider: "gke" or "eks"
   api_url         = var.castai_api_url
   api_token       = var.castai_api_token
   organization_id = var.organization_id
@@ -92,6 +98,51 @@ module "castai_gcp_edge_location" {
   }
 
   depends_on = [module.castai-omni-cluster]
+}
+```
+
+### Complete EKS Example
+
+```hcl
+data "aws_eks_cluster" "eks" {
+  name = var.eks_cluster_name
+}
+
+data "aws_vpc" "eks_vpc" {
+  id = data.aws_eks_cluster.eks.vpc_config[0].vpc_id
+}
+
+data "aws_subnets" "eks_subnets" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.eks_vpc.id]
+  }
+}
+
+data "aws_subnet" "eks_subnet" {
+  for_each = toset(data.aws_subnets.eks_subnets.ids)
+  id       = each.value
+}
+
+locals {
+  subnet_cidrs = [for s in data.aws_subnet.eks_subnet : s.cidr_block]
+}
+
+module "castai_omni_cluster" {
+  source = "github.com/castai/terraform-castai-omni-cluster"
+
+  k8s_provider    = "eks"  # Specify cloud provider: "gke" or "eks"
+  api_url         = var.castai_api_url
+  api_token       = var.castai_api_token
+  organization_id = var.organization_id
+  cluster_id      = var.cluster_id
+  cluster_name    = var.eks_cluster_name
+  cluster_region  = var.eks_cluster_region
+
+  api_server_address    = data.aws_eks_cluster.eks.endpoint
+  pod_cidr              = data.aws_eks_cluster.eks.kubernetes_network_config[0].service_ipv4_cidr
+  service_cidr          = data.aws_eks_cluster.eks.kubernetes_network_config[0].service_ipv4_cidr
+  reserved_subnet_cidrs = local.subnet_cidrs
 }
 ```
 
@@ -155,12 +206,13 @@ provider "castai" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| k8s_provider | Kubernetes cloud provider (gke, eks) | `string` | - | yes |
 | api_token | CAST AI API token for authentication | `string` | - | yes |
 | organization_id | CAST AI organization ID | `string` | - | yes |
 | cluster_id | CAST AI cluster ID | `string` | - | yes |
 | cluster_name | Cluster name | `string` | - | yes |
 | cluster_region | Kubernetes cluster region | `string` | - | yes |
-| cluster_zone | Kubernetes cluster zone | `string` | - | yes |
+| cluster_zone | Kubernetes cluster zone (optional for EKS) | `string` | `""` | no |
 | api_server_address | Kubernetes API server address | `string` | - | yes |
 | pod_cidr | Pod CIDR for network configuration | `string` | - | yes |
 | service_cidr | Service CIDR for network configuration | `string` | - | yes |
@@ -178,22 +230,40 @@ provider "castai" {
 
 ## Network Configuration
 
-The module automatically extracts network configuration from your GKE cluster:
+The module automatically extracts network configuration from your cluster:
 
+### GKE Clusters
 - **Subnet CIDR**: Retrieved from the cluster's subnetwork
 - **Pod CIDR**: Retrieved from `cluster_ipv4_cidr`
 - **Service CIDR**: Retrieved from `services_ipv4_cidr`
 - **External CIDR**: Automatically extracted from Liqo network resources after IPAM initialization
 - **Region/Zone**: Automatically determined from cluster location
 
+### EKS Clusters
+- **Subnet CIDRs**: Retrieved from all VPC subnets
+- **Pod CIDR**: Retrieved from `kubernetes_network_config`
+- **Service CIDR**: Retrieved from `kubernetes_network_config`
+- **External CIDR**: Automatically extracted from Liqo network resources after IPAM initialization
+- **Region**: From cluster configuration
+
 ## Liqo Configuration
 
-The module includes a GKE-specific submodule that:
+The module includes cloud-specific submodules for optimal Liqo configuration:
+
+### GKE Configuration
 - Installs Liqo for multi-cluster networking
 - Configures IPAM with pod, service, and reserved subnet CIDRs
 - Sets up topology labels for GKE region and zone
 - Enables virtual node capabilities for edge locations
-- Uses Liqo chart's default configurations for network fabric settings (health probes, metrics)
+- Uses Liqo chart's default configurations for network fabric settings
+
+### EKS Configuration
+- Installs Liqo with AWS-optimized settings
+- Configures IPAM with pod, service, and reserved subnet CIDRs
+- Sets up topology labels for EKS region
+- Enables full masquerade for pod traffic (required for EKS networking)
+- Configures AWS Network Load Balancer (NLB) for gateway service
+- Enables virtual node capabilities for edge locations
 
 ## Installation Order and Dependencies
 
@@ -211,12 +281,15 @@ This ordering ensures that Liqo's IPAM system is fully initialized and the exter
 
 ## Examples
 
-See the [examples/onboarding-with-existing-gke-cluster](./examples/onboarding-with-existing-gke-cluster) directory for a complete working example.
+Complete working examples are available for both cloud providers:
+- **GKE**: [examples/onboarding-with-existing-gke-cluster](./examples/onboarding-with-existing-gke-cluster)
+- **EKS**: [examples/onboarding-with-existing-eks-cluster](./examples/onboarding-with-existing-eks-cluster)
 
 ## Related Modules
 
 - [terraform-castai-omni-edge-location](https://github.com/castai/terraform-castai-omni-edge-location) - Create and manage edge locations for Omni clusters
-- [terraform-castai-gke-cluster](https://github.com/castai/gke-cluster) - Onboard GKE clusters to CAST AI
+- [terraform-castai-gke-cluster](https://github.com/castai/terraform-castai-gke-cluster) - Onboard GKE clusters to CAST AI
+- [terraform-castai-eks-cluster](https://github.com/castai/terraform-castai-eks-cluster) - Onboard EKS clusters to CAST AI
 
 ## License
 
@@ -245,7 +318,8 @@ MIT
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_liqo_helm_values"></a> [liqo\_helm\_values](#module\_liqo\_helm\_values) | ./modules/gke | n/a |
+| <a name="module_liqo_helm_values_eks"></a> [liqo\_helm\_values\_eks](#module\_liqo\_helm\_values\_eks) | ./modules/eks | n/a |
+| <a name="module_liqo_helm_values_gke"></a> [liqo\_helm\_values\_gke](#module\_liqo\_helm\_values\_gke) | ./modules/gke | n/a |
 
 ## Resources
 
@@ -267,7 +341,8 @@ MIT
 | <a name="input_cluster_id"></a> [cluster\_id](#input\_cluster\_id) | CAST AI cluster ID to enable Omni functionality for | `string` | n/a | yes |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | CAST AI cluster name | `string` | n/a | yes |
 | <a name="input_cluster_region"></a> [cluster\_region](#input\_cluster\_region) | K8s cluster region | `string` | n/a | yes |
-| <a name="input_cluster_zone"></a> [cluster\_zone](#input\_cluster\_zone) | K8s cluster zone | `string` | n/a | yes |
+| <a name="input_cluster_zone"></a> [cluster\_zone](#input\_cluster\_zone) | K8s cluster zone | `string` | `""` | no |
+| <a name="input_k8s_provider"></a> [k8s\_provider](#input\_k8s\_provider) | Kubernetes cloud provider (gke, eks) | `string` | n/a | yes |
 | <a name="input_liqo_chart_version"></a> [liqo\_chart\_version](#input\_liqo\_chart\_version) | Liqo helm chart version | `string` | `"v1.0.1-5"` | no |
 | <a name="input_organization_id"></a> [organization\_id](#input\_organization\_id) | CAST AI organization ID | `string` | n/a | yes |
 | <a name="input_pod_cidr"></a> [pod\_cidr](#input\_pod\_cidr) | Pod CIDR for network configuration | `string` | n/a | yes |
