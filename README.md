@@ -222,11 +222,10 @@ provider "castai" {
 
 ## Outputs
 
-| Name | Description |
-|------|-------------|
-| cluster_id | ID of the Omni-enabled cluster |
-| organization_id | Organization ID of the Omni cluster |
-| id | ID of the castai_omni_cluster resource |
+| Name | Description                            |
+|------|----------------------------------------|
+| organization_id | Organization ID of the Omni-enabled cluster    |
+| cluster_id | Cluster ID of the Omni-enabled cluster |
 
 ## Network Configuration
 
