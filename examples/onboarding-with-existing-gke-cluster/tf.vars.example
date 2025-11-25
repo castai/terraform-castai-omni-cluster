@@ -1,0 +1,8 @@
+gke_project_id       = "<place-holder>"
+gke_cluster_location = "<place-holder>"
+gke_cluster_name     = "<place-holder>"
+
+castai_api_url   = "https://api.cast.ai"
+castai_api_token = "<place-holder>"
+cluster_id       = "<place-holder>"
+organization_id  = "<place-holder>"
