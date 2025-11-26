@@ -352,7 +352,6 @@ MIT
 
 | Name | Description |
 |------|-------------|
-| <a name="output_cluster_id"></a> [cluster\_id](#output\_cluster\_id) | ID of the Omni-enabled cluster |
-| <a name="output_id"></a> [id](#output\_id) | ID of the castai\_omni\_cluster resource |
-| <a name="output_organization_id"></a> [organization\_id](#output\_organization\_id) | Organization ID of the Omni cluster |
+| <a name="output_cluster_id"></a> [cluster\_id](#output\_cluster\_id) | Cluster ID of the Omni-enabled cluster |
+| <a name="output_organization_id"></a> [organization\_id](#output\_organization\_id) | Organization ID of the Omni-enabled cluster |
 <!-- END_TF_DOCS -->
