@@ -33,6 +33,10 @@ locals {
     {
       name  = "telemetry.enabled"
       value = "false"
+    },
+    {
+      name  = "virtualKubelet.extra.args"
+      value = "{--certificate-type=aws}"
     }
   ]
 

@@ -9,8 +9,21 @@ locals {
   omni_agent_chart       = "omni-agent"
   castai_helm_repository = "https://castai.github.io/helm-charts"
 
-  # Select the appropriate set_values based on k8s_provider
-  set_values = var.k8s_provider == "gke" ? module.liqo_helm_values_gke[0].set_values : module.liqo_helm_values_eks[0].set_values
+  # Common Liqo configurations
+  common_liqo_values = [
+    {
+      name  = "networking.fabric.config.healthProbeBindAddressPort"
+      value = "'7071'"
+    },
+    {
+      name  = "networking.fabric.config.metricsAddressPort"
+      value = "'7072'"
+    }
+  ]
+
+  # Select the appropriate set_values based on k8s_provider and merge with common values
+  provider_specific_liqo_values = var.k8s_provider == "gke" ? module.liqo_helm_values_gke[0].set_values : module.liqo_helm_values_eks[0].set_values
+  liqo_values                   = concat(local.provider_specific_liqo_values, local.common_liqo_values)
 }
 
 # GKE-specific Liqo Helm chart configuration
@@ -53,7 +66,7 @@ resource "helm_release" "liqo" {
   cleanup_on_fail  = true
   wait             = true
 
-  set = local.set_values
+  set = local.liqo_values
 }
 
 # Wait for Liqo network resources to be ready before proceeding
