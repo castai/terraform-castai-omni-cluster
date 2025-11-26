@@ -9,8 +9,17 @@ locals {
   omni_agent_chart       = "omni-agent"
   castai_helm_repository = "https://castai.github.io/helm-charts"
 
+  # Common Liqo configurations as YAML
+  common_liqo_yaml_values = <<-EOT
+    networking:
+      fabric:
+        config:
+          healthProbeBindAddressPort: '7071'
+          metricsAddressPort: '7072'
+  EOT
+
   # Select the appropriate set_values based on k8s_provider
-  set_values = var.k8s_provider == "gke" ? module.liqo_helm_values_gke[0].set_values : module.liqo_helm_values_eks[0].set_values
+  provider_specific_liqo_values = var.k8s_provider == "gke" ? module.liqo_helm_values_gke[0].set_values : module.liqo_helm_values_eks[0].set_values
 }
 
 # GKE-specific Liqo Helm chart configuration
@@ -53,7 +62,8 @@ resource "helm_release" "liqo" {
   cleanup_on_fail  = true
   wait             = true
 
-  set = local.set_values
+  values = [local.common_liqo_yaml_values]
+  set    = local.provider_specific_liqo_values
 }
 
 # Wait for Liqo network resources to be ready before proceeding
