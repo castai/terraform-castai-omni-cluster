@@ -1,3 +1,10 @@
+check "reserved_cidrs_required_for_gke" {
+  assert {
+    condition     = var.k8s_provider != "gke" || (var.reserved_subnet_cidrs != null && length(var.reserved_subnet_cidrs) > 0)
+    error_message = "'reserved_subnet_cidrs' must be provided for GKE cluster"
+  }
+}
+
 locals {
   liqo_chart_repo   = "https://castai.github.io/liqo"
   liqo_chart_name   = "liqo"
@@ -42,13 +49,12 @@ module "liqo_helm_values_eks" {
   count  = var.k8s_provider == "eks" ? 1 : 0
   source = "./modules/eks"
 
-  image_tag             = local.liqo_image_tag
-  cluster_name          = var.cluster_name
-  cluster_region        = var.cluster_region
-  api_server_address    = var.api_server_address
-  pod_cidr              = var.pod_cidr
-  service_cidr          = var.service_cidr
-  reserved_subnet_cidrs = var.reserved_subnet_cidrs
+  image_tag          = local.liqo_image_tag
+  cluster_name       = var.cluster_name
+  cluster_region     = var.cluster_region
+  api_server_address = var.api_server_address
+  pod_cidr           = var.pod_cidr
+  service_cidr       = var.service_cidr
 }
 
 # Liqo Helm Release
