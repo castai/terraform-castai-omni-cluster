@@ -37,7 +37,7 @@ module "castai_omni_cluster" {
   cluster_region  = var.eks_cluster_region
 
   api_server_address    = data.aws_eks_cluster.eks.endpoint
-  pod_cidr              = data.aws_eks_cluster.eks.kubernetes_network_config[0].service_ipv4_cidr
+  pod_cidr              = data.aws_vpc.eks_vpc.cidr_block
   service_cidr          = data.aws_eks_cluster.eks.kubernetes_network_config[0].service_ipv4_cidr
   reserved_subnet_cidrs = local.subnet_cidrs
 }
