@@ -345,7 +345,7 @@ MIT
 | <a name="input_liqo_chart_version"></a> [liqo\_chart\_version](#input\_liqo\_chart\_version) | Liqo helm chart version | `string` | `"v1.0.1-5"` | no |
 | <a name="input_organization_id"></a> [organization\_id](#input\_organization\_id) | CAST AI organization ID | `string` | n/a | yes |
 | <a name="input_pod_cidr"></a> [pod\_cidr](#input\_pod\_cidr) | Pod CIDR for network configuration | `string` | n/a | yes |
-| <a name="input_reserved_subnet_cidrs"></a> [reserved\_subnet\_cidrs](#input\_reserved\_subnet\_cidrs) | List of reserved subnet CIDR's | `list(string)` | n/a | yes |
+| <a name="input_reserved_subnet_cidrs"></a> [reserved\_subnet\_cidrs](#input\_reserved\_subnet\_cidrs) | List of reserved subnet CIDR's (relevant for GKE) | `list(string)` | `[]` | no |
 | <a name="input_service_cidr"></a> [service\_cidr](#input\_service\_cidr) | Service CIDR for network configuration | `string` | n/a | yes |
 
 ## Outputs

@@ -38,7 +38,7 @@ jobs:
       - name: Run TFLint
         run: |
           tflint --init
-          tflint -f compact
+          tflint
 
       - name: Validate Examples
         run: |
