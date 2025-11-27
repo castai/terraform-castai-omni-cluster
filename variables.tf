@@ -67,6 +67,7 @@ variable "service_cidr" {
 }
 
 variable "reserved_subnet_cidrs" {
-  description = "List of reserved subnet CIDR's"
+  description = "List of reserved subnet CIDR's (relevant for GKE)"
   type        = list(string)
+  default     = []
 }

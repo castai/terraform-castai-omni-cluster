@@ -37,5 +37,4 @@ variable "service_cidr" {
 variable "reserved_subnet_cidrs" {
   description = "List of subnet CIDRs for IPAM reserved subnets"
   type        = list(string)
-  default     = []
 }

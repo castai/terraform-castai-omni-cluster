@@ -47,13 +47,6 @@ locals {
     }
   ]
 
-  reserved_subnets_set_values = [
-    for idx, cidr in var.reserved_subnet_cidrs : {
-      name  = "ipam.reservedSubnets[${idx}]"
-      value = cidr
-    }
-  ]
-
   eks_specific_set_values = [
     {
       name  = "networking.fabric.config.fullMasquerade"
@@ -68,7 +61,6 @@ locals {
   all_set_values = concat(
     local.basic_set_values,
     local.pools_set_values,
-    local.reserved_subnets_set_values,
     local.eks_specific_set_values
   )
 }
