@@ -20,11 +20,6 @@ data "aws_subnet" "eks_subnet" {
   id       = each.value
 }
 
-locals {
-  # Get all subnet CIDR blocks for reserved subnets
-  subnet_cidrs = [for s in data.aws_subnet.eks_subnet : s.cidr_block]
-}
-
 module "castai_omni_cluster" {
   source = "../.."
 
@@ -36,10 +31,9 @@ module "castai_omni_cluster" {
   cluster_name    = var.eks_cluster_name
   cluster_region  = var.eks_cluster_region
 
-  api_server_address    = data.aws_eks_cluster.eks.endpoint
-  pod_cidr              = data.aws_vpc.eks_vpc.cidr_block
-  service_cidr          = data.aws_eks_cluster.eks.kubernetes_network_config[0].service_ipv4_cidr
-  reserved_subnet_cidrs = local.subnet_cidrs
+  api_server_address = data.aws_eks_cluster.eks.endpoint
+  pod_cidr           = data.aws_vpc.eks_vpc.cidr_block
+  service_cidr       = data.aws_eks_cluster.eks.kubernetes_network_config[0].service_ipv4_cidr
 }
 
 module "castai_aws_edge_location" {
