@@ -4,7 +4,7 @@ terraform {
   required_providers {
     castai = {
       source  = "castai/castai"
-      version = ">= 8.3.0"
+      version = ">= 8.4.0"
     }
     helm = {
       source  = "hashicorp/helm"
