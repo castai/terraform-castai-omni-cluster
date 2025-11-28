@@ -1,10 +1,10 @@
 terraform {
-  required_version = ">= 1.11"
+  required_version = ">= 1.10"
 
   required_providers {
     castai = {
       source  = "castai/castai"
-      version = ">= 8.3.0"
+      version = ">= 8.4.0"
     }
     helm = {
       source  = "hashicorp/helm"
