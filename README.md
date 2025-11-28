@@ -21,12 +21,12 @@ This Terraform module enables CAST AI Omni functionality for a Kubernetes cluste
 - CAST AI API credentials
 - `kubectl` configured with access to your Kubernetes cluster
 - Terraform >= 1.11
-- CAST AI Terraform provider >= 8.3.0
+- CAST AI Terraform provider >= 8.4.0
 - Helm provider >= 3.1.1
 - Null provider >= 3.2.4
 - External provider >= 2.3.5
 - Google provider >= 4.0 (for GKE clusters)
-- AWS provider >= 5.0 (for EKS clusters)
+- AWS provider >= 6.23.0 (for EKS clusters)
 
 ## What This Module Installs
 
@@ -163,7 +163,7 @@ terraform {
   required_providers {
     castai = {
       source  = "castai/castai"
-      version = ">= 8.3.0"
+      version = ">= 8.4.0"
     }
     google = {
       source  = "hashicorp/google"
