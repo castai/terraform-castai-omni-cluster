@@ -1,6 +1,5 @@
-gke_project_id       = "<place-holder>"
-gke_cluster_location = "<place-holder>"
-gke_cluster_name     = "<place-holder>"
+eks_cluster_region = "<place-holder>"
+eks_cluster_name   = "<place-holder>"
 
 castai_api_url   = "https://api.cast.ai"
 castai_api_token = "<place-holder>"
