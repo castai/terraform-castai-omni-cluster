@@ -5,7 +5,7 @@ This Terraform module enables CAST AI Omni functionality for a Kubernetes cluste
 ## Features
 
 - Enables CAST AI Omni functionality for existing clusters
-- **Support for GKE and EKS** (AKS coming soon)
+- **Support for GKE, EKS, and AKS**
 - Installs and configures Liqo for multi-cluster networking with cloud-specific optimizations
 - Deploys CAST AI Omni Agent for cluster management
 - Automatic extraction of network configuration from clusters (including external CIDR from Liqo)
@@ -14,6 +14,7 @@ This Terraform module enables CAST AI Omni functionality for a Kubernetes cluste
 - Cloud-specific configurations:
   - **GKE:** Uses default Liqo network fabric settings
   - **EKS:** Configures AWS Network Load Balancer (NLB) and full masquerade for pod traffic
+  - **AKS:** Configures Azure-specific settings
 
 ## Prerequisites
 
@@ -27,6 +28,7 @@ This Terraform module enables CAST AI Omni functionality for a Kubernetes cluste
 - External provider >= 2.3.5
 - Google provider >= 4.0 (for GKE clusters)
 - AWS provider >= 6.23.0 (for EKS clusters)
+- AzureRM provider >= 3.0 (for AKS clusters)
 
 ## What This Module Installs
 
@@ -68,7 +70,7 @@ data "google_compute_subnetwork" "gke_subnet" {
 module "castai-omni-cluster" {
   source = "../.."
 
-  k8s_provider    = "gke"  # Specify cloud provider: "gke" or "eks"
+  k8s_provider    = "gke"  # Specify cloud provider: "gke", "eks", or "aks"
   api_url         = var.castai_api_url
   api_token       = var.castai_api_token
   organization_id = var.organization_id
@@ -131,7 +133,7 @@ locals {
 module "castai_omni_cluster" {
   source = "github.com/castai/terraform-castai-omni-cluster"
 
-  k8s_provider    = "eks"  # Specify cloud provider: "gke" or "eks"
+  k8s_provider    = "eks"  # Specify cloud provider: "gke", "eks", or "aks"
   api_url         = var.castai_api_url
   api_token       = var.castai_api_token
   organization_id = var.organization_id
@@ -143,6 +145,37 @@ module "castai_omni_cluster" {
   pod_cidr              = data.aws_eks_cluster.eks.kubernetes_network_config[0].service_ipv4_cidr
   service_cidr          = data.aws_eks_cluster.eks.kubernetes_network_config[0].service_ipv4_cidr
   reserved_subnet_cidrs = local.subnet_cidrs
+}
+```
+
+### Complete AKS Example
+
+```hcl
+data "azurerm_kubernetes_cluster" "aks" {
+  name                = var.aks_cluster_name
+  resource_group_name = var.aks_resource_group
+}
+
+data "azurerm_virtual_network" "aks_vnet" {
+  name                = var.aks_vnet_name
+  resource_group_name = var.aks_vnet_resource_group
+}
+
+module "castai_omni_cluster" {
+  source = "github.com/castai/terraform-castai-omni-cluster"
+
+  k8s_provider    = "aks"  # Specify cloud provider: "gke", "eks", or "aks"
+  api_url         = var.castai_api_url
+  api_token       = var.castai_api_token
+  organization_id = var.organization_id
+  cluster_id      = var.cluster_id
+  cluster_name    = var.aks_cluster_name
+  cluster_region  = data.azurerm_kubernetes_cluster.aks.location
+
+  api_server_address    = "https://${data.azurerm_kubernetes_cluster.aks.fqdn}"
+  pod_cidr              = data.azurerm_kubernetes_cluster.aks.network_profile[0].pod_cidr
+  service_cidr          = data.azurerm_kubernetes_cluster.aks.network_profile[0].service_cidr
+  reserved_subnet_cidrs = data.azurerm_virtual_network.aks_vnet.address_space
 }
 ```
 
@@ -206,7 +239,7 @@ provider "castai" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| k8s_provider | Kubernetes cloud provider (gke, eks) | `string` | - | yes |
+| k8s_provider | Kubernetes cloud provider (gke, eks, aks) | `string` | - | yes |
 | api_token | CAST AI API token for authentication | `string` | - | yes |
 | organization_id | CAST AI organization ID | `string` | - | yes |
 | cluster_id | CAST AI cluster ID | `string` | - | yes |
@@ -245,6 +278,13 @@ The module automatically extracts network configuration from your cluster:
 - **External CIDR**: Automatically extracted from Liqo network resources after IPAM initialization
 - **Region**: From cluster configuration
 
+### AKS Clusters
+- **VNet Address Space**: Retrieved from the Azure Virtual Network
+- **Pod CIDR**: Retrieved from `network_profile`
+- **Service CIDR**: Retrieved from `network_profile`
+- **External CIDR**: Automatically extracted from Liqo network resources after IPAM initialization
+- **Region**: From cluster location
+
 ## Liqo Configuration
 
 The module includes cloud-specific submodules for optimal Liqo configuration:
@@ -264,6 +304,12 @@ The module includes cloud-specific submodules for optimal Liqo configuration:
 - Configures AWS Network Load Balancer (NLB) for gateway service
 - Enables virtual node capabilities for edge locations
 
+### AKS Configuration
+- Installs Liqo with Azure-optimized settings
+- Configures IPAM with pod, service, and reserved subnet CIDRs from VNet
+- Sets up topology labels for AKS location
+- Enables virtual node capabilities for edge locations
+
 ## Installation Order and Dependencies
 
 The module ensures proper installation order by:
@@ -280,15 +326,17 @@ This ordering ensures that Liqo's IPAM system is fully initialized and the exter
 
 ## Examples
 
-Complete working examples are available for both cloud providers:
+Complete working examples are available for all supported cloud providers:
 - **GKE**: [examples/onboarding-with-existing-gke-cluster](./examples/onboarding-with-existing-gke-cluster)
 - **EKS**: [examples/onboarding-with-existing-eks-cluster](./examples/onboarding-with-existing-eks-cluster)
+- **AKS**: [examples/onboarding-with-existing-aks-cluster](./examples/onboarding-with-existing-aks-cluster)
 
 ## Related Modules
 
 - [terraform-castai-omni-edge-location](https://github.com/castai/terraform-castai-omni-edge-location) - Create and manage edge locations for Omni clusters
 - [terraform-castai-gke-cluster](https://github.com/castai/terraform-castai-gke-cluster) - Onboard GKE clusters to CAST AI
 - [terraform-castai-eks-cluster](https://github.com/castai/terraform-castai-eks-cluster) - Onboard EKS clusters to CAST AI
+- [terraform-castai-aks-cluster](https://github.com/castai/terraform-castai-aks-cluster) - Onboard AKS clusters to CAST AI
 
 ## License
 
@@ -317,6 +365,7 @@ MIT
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_liqo_helm_values_aks"></a> [liqo\_helm\_values\_aks](#module\_liqo\_helm\_values\_aks) | ./modules/aks | n/a |
 | <a name="module_liqo_helm_values_eks"></a> [liqo\_helm\_values\_eks](#module\_liqo\_helm\_values\_eks) | ./modules/eks | n/a |
 | <a name="module_liqo_helm_values_gke"></a> [liqo\_helm\_values\_gke](#module\_liqo\_helm\_values\_gke) | ./modules/gke | n/a |
 
@@ -341,7 +390,7 @@ MIT
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | CAST AI cluster name | `string` | n/a | yes |
 | <a name="input_cluster_region"></a> [cluster\_region](#input\_cluster\_region) | K8s cluster region | `string` | n/a | yes |
 | <a name="input_cluster_zone"></a> [cluster\_zone](#input\_cluster\_zone) | K8s cluster zone | `string` | `""` | no |
-| <a name="input_k8s_provider"></a> [k8s\_provider](#input\_k8s\_provider) | Kubernetes cloud provider (gke, eks) | `string` | n/a | yes |
+| <a name="input_k8s_provider"></a> [k8s\_provider](#input\_k8s\_provider) | Kubernetes cloud provider (gke, eks, aks) | `string` | n/a | yes |
 | <a name="input_liqo_chart_version"></a> [liqo\_chart\_version](#input\_liqo\_chart\_version) | Liqo helm chart version | `string` | `"v1.0.1-5"` | no |
 | <a name="input_organization_id"></a> [organization\_id](#input\_organization\_id) | CAST AI organization ID | `string` | n/a | yes |
 | <a name="input_pod_cidr"></a> [pod\_cidr](#input\_pod\_cidr) | Pod CIDR for network configuration | `string` | n/a | yes |
