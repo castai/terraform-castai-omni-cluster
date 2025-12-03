@@ -1,9 +1,9 @@
 variable "k8s_provider" {
-  description = "Kubernetes cloud provider (gke, eks)"
+  description = "Kubernetes cloud provider (gke, eks, aks)"
   type        = string
   validation {
-    condition     = contains(["gke", "eks"], var.k8s_provider)
-    error_message = "Kubernetes provider must be one of: gke, eks"
+    condition     = contains(["gke", "eks", "aks"], var.k8s_provider)
+    error_message = "Kubernetes provider must be one of: gke, eks, aks"
   }
 }
 
