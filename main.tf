@@ -26,12 +26,12 @@ locals {
   EOT
 
   # Select the appropriate set_values based on k8s_provider
-  provider_specific_liqo_values = var.k8s_provider == "gke" ? module.liqo_helm_values_gke[0].set_values : module.liqo_helm_values_eks[0].set_values
+  provider_specific_liqo_values = var.skip_helm ? [] : (var.k8s_provider == "gke" ? module.liqo_helm_values_gke[0].set_values : module.liqo_helm_values_eks[0].set_values)
 }
 
 # GKE-specific Liqo Helm chart configuration
 module "liqo_helm_values_gke" {
-  count  = var.k8s_provider == "gke" ? 1 : 0
+  count  = !var.skip_helm && var.k8s_provider == "gke" ? 1 : 0
   source = "./modules/gke"
 
   image_tag             = local.liqo_image_tag
@@ -46,7 +46,7 @@ module "liqo_helm_values_gke" {
 
 # EKS-specific Liqo Helm chart configuration
 module "liqo_helm_values_eks" {
-  count  = var.k8s_provider == "eks" ? 1 : 0
+  count  = !var.skip_helm && var.k8s_provider == "eks" ? 1 : 0
   source = "./modules/eks"
 
   image_tag          = local.liqo_image_tag
@@ -59,6 +59,8 @@ module "liqo_helm_values_eks" {
 
 # Liqo Helm Release
 resource "helm_release" "liqo" {
+  count = var.skip_helm ? 0 : 1
+
   name             = local.liqo_release_name
   repository       = local.liqo_chart_repo
   chart            = local.liqo_chart_name
@@ -74,6 +76,8 @@ resource "helm_release" "liqo" {
 
 # Wait for Liqo network resources to be ready before proceeding
 resource "null_resource" "wait_for_liqo_network" {
+  count = var.skip_helm ? 0 : 1
+
   provisioner "local-exec" {
     command = <<-EOT
       set -e
@@ -111,6 +115,8 @@ resource "null_resource" "wait_for_liqo_network" {
 
 # Extract the external CIDR value from Liqo network resource
 data "external" "liqo_external_cidr" {
+  count = var.skip_helm ? 0 : 1
+
   program = ["bash", "-c", <<-EOT
     CIDR=$(kubectl get networks.ipam.liqo.io -n ${local.omni_namespace} \
       -l ipam.liqo.io/network-type=external-cidr \
@@ -129,6 +135,8 @@ data "external" "liqo_external_cidr" {
 
 # CAST AI Omni Agent Helm Release
 resource "helm_release" "omni_agent" {
+  count = var.skip_helm ? 0 : 1
+
   name             = local.omni_agent_release
   repository       = local.castai_helm_repository
   chart            = local.omni_agent_chart
@@ -140,7 +148,7 @@ resource "helm_release" "omni_agent" {
   set = [
     {
       name  = "network.externalCIDR"
-      value = data.external.liqo_external_cidr.result.cidr
+      value = data.external.liqo_external_cidr[0].result.cidr
     },
     {
       name  = "network.podCIDR"
