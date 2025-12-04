@@ -71,3 +71,9 @@ variable "reserved_subnet_cidrs" {
   type        = list(string)
   default     = []
 }
+
+variable "skip_helm" {
+  description = "Skip installing any helm release; allows managing helm releases using GitOps"
+  type        = bool
+  default     = false
+}
