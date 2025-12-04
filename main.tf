@@ -127,14 +127,6 @@ data "external" "liqo_external_cidr" {
   depends_on = [null_resource.wait_for_liqo_network]
 }
 
-# Enabling CAST AI Omni functionality for a given cluster
-resource "castai_omni_cluster" "this" {
-  cluster_id      = var.cluster_id
-  organization_id = var.organization_id
-
-  depends_on = [null_resource.wait_for_liqo_network]
-}
-
 # CAST AI Omni Agent Helm Release
 resource "helm_release" "omni_agent" {
   name             = local.omni_agent_release
@@ -179,5 +171,13 @@ resource "helm_release" "omni_agent" {
     }
   ]
 
-  depends_on = [castai_omni_cluster.this]
+  depends_on = [null_resource.wait_for_liqo_network]
+}
+
+# Enabling CAST AI Omni functionality for a given cluster
+resource "castai_omni_cluster" "this" {
+  cluster_id      = var.cluster_id
+  organization_id = var.organization_id
+
+  depends_on = [helm_release.omni_agent]
 }
