@@ -11,9 +11,9 @@ locals {
   liqo_release_name = "omni"
   liqo_image_tag    = var.liqo_chart_version
 
-  omni_namespace         = "castai-omni"
-  omni_agent_release     = "omni-agent"
-  omni_agent_chart       = "omni-agent"
+  omni_namespace     = "castai-omni"
+  omni_agent_release = "omni-agent"
+  omni_agent_chart   = "omni-agent"
   castai_helm_repository = "https://castai.github.io/helm-charts"
 
   # Common Liqo configurations as YAML
@@ -27,12 +27,12 @@ locals {
 
   # Select the appropriate set_values based on k8s_provider
   provider_helm_values = merge(
-    { for v in module.liqo_helm_values_gke : "gke" => v.set_values },
-    { for v in module.liqo_helm_values_eks : "eks" => v.set_values },
-    { for v in module.liqo_helm_values_aks : "aks" => v.set_values },
+    {for v in module.liqo_helm_values_gke : "gke" => v.set_values},
+    {for v in module.liqo_helm_values_eks : "eks" => v.set_values},
+    {for v in module.liqo_helm_values_aks : "aks" => v.set_values},
   )
   provider_specific_liqo_values = local.provider_helm_values[var.k8s_provider]
-
+}
 
 # GKE-specific Liqo Helm chart configuration
 module "liqo_helm_values_gke" {
