@@ -26,7 +26,12 @@ locals {
   EOT
 
   # Select the appropriate set_values based on k8s_provider
-  provider_specific_liqo_values = var.k8s_provider == "gke" ? module.liqo_helm_values_gke[0].set_values : module.liqo_helm_values_eks[0].set_values
+  provider_helm_values = merge(
+    { for v in module.liqo_helm_values_gke : "gke" => v.set_values },
+    { for v in module.liqo_helm_values_eks : "eks" => v.set_values },
+    { for v in module.liqo_helm_values_aks : "aks" => v.set_values },
+  )
+  provider_specific_liqo_values = local.provider_helm_values[var.k8s_provider]
 }
 
 # GKE-specific Liqo Helm chart configuration
@@ -57,7 +62,20 @@ module "liqo_helm_values_eks" {
   service_cidr       = var.service_cidr
 }
 
-# Liqo Helm Release
+# AKS-specific Liqo Helm chart configuration
+module "liqo_helm_values_aks" {
+  count  = var.k8s_provider == "aks" ? 1 : 0
+  source = "./modules/aks"
+
+  image_tag          = local.liqo_image_tag
+  cluster_name       = var.cluster_name
+  cluster_region     = var.cluster_region
+  cluster_zone       = var.cluster_zone
+  api_server_address = var.api_server_address
+  pod_cidr           = var.pod_cidr
+  service_cidr       = var.service_cidr
+}
+
 resource "helm_release" "liqo" {
   name             = local.liqo_release_name
   repository       = local.liqo_chart_repo
