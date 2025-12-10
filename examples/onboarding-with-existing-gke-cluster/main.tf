@@ -40,6 +40,8 @@ module "castai_omni_cluster" {
   pod_cidr              = data.google_container_cluster.gke.cluster_ipv4_cidr
   service_cidr          = data.google_container_cluster.gke.services_ipv4_cidr
   reserved_subnet_cidrs = [data.google_compute_subnetwork.gke_subnet.ip_cidr_range]
+
+  skip_helm = var.skip_helm
 }
 
 module "castai_omni_edge_location_gcp" {

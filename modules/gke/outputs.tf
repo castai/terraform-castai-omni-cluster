@@ -1,4 +1,4 @@
-output "set_values" {
-  description = "All Helm set values for liqo configuration"
-  value       = local.all_set_values
+output "liqo_yaml_values" {
+  description = "Liqo configuration as nested YAML structure"
+  value       = local.liqo_yaml_values
 }
