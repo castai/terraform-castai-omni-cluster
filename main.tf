@@ -5,16 +5,12 @@ check "reserved_cidrs_required_for_gke" {
   }
 }
 
-locals {
-  liqo_image_tag = var.liqo_chart_version
-}
-
 # GKE-specific Liqo Helm chart configuration
 module "liqo_helm_values_gke" {
   count  = var.k8s_provider == "gke" ? 1 : 0
   source = "./modules/gke"
 
-  image_tag             = local.liqo_image_tag
+  image_tag             = var.liqo_image_tag
   cluster_name          = var.cluster_name
   cluster_region        = var.cluster_region
   cluster_zone          = var.cluster_zone
@@ -29,7 +25,7 @@ module "liqo_helm_values_eks" {
   count  = var.k8s_provider == "eks" ? 1 : 0
   source = "./modules/eks"
 
-  image_tag          = local.liqo_image_tag
+  image_tag          = var.liqo_image_tag
   cluster_name       = var.cluster_name
   cluster_region     = var.cluster_region
   api_server_address = var.api_server_address
@@ -42,7 +38,7 @@ module "liqo_helm_values_aks" {
   count  = var.k8s_provider == "aks" ? 1 : 0
   source = "./modules/aks"
 
-  image_tag          = local.liqo_image_tag
+  image_tag          = var.liqo_image_tag
   cluster_name       = var.cluster_name
   cluster_region     = var.cluster_region
   cluster_zone       = var.cluster_zone
@@ -52,10 +48,6 @@ module "liqo_helm_values_aks" {
 }
 
 locals {
-  liqo_chart_repo   = "https://castai.github.io/liqo"
-  liqo_chart_name   = "liqo"
-  liqo_release_name = "omni"
-
   omni_namespace         = "castai-omni"
   omni_agent_release     = "castai-omni-agent"
   omni_agent_chart       = "omni-agent"
@@ -155,9 +147,7 @@ resource "kubernetes_config_map_v1" "helm_values" {
   }
 
   data = {
-    "liqo.repository"       = local.liqo_chart_repo
-    "liqo.chart"            = local.liqo_chart_name
-    "liqo.version"          = var.liqo_chart_version
+    "liqo.version"          = var.liqo_image_tag
     "omni-agent.repository" = local.castai_helm_repository
     "omni-agent.chart"      = local.omni_agent_chart
     "values.yaml"           = yamlencode(local.helm_yaml_values)

@@ -45,8 +45,8 @@ variable "cluster_zone" {
   default     = ""
 }
 
-variable "liqo_chart_version" {
-  description = "Liqo helm chart version"
+variable "liqo_image_tag" {
+  description = "Liqo image version tag"
   type        = string
   default     = "v1.0.1-5"
 }
