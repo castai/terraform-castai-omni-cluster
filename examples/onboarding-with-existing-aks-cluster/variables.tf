@@ -39,3 +39,9 @@ variable "cluster_id" {
   description = "Cast AI Cluster ID"
   type        = string
 }
+
+variable "skip_helm" {
+  description = "Skip installing any helm release; allows managing helm releases using GitOps"
+  type        = bool
+  default     = false
+}

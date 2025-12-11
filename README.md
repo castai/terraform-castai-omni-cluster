@@ -8,6 +8,7 @@ This Terraform module enables CAST AI Omni functionality for a Kubernetes cluste
 - **Support for GKE, EKS, and AKS**
 - Installs and configures Liqo for multi-cluster networking with cloud-specific optimizations
 - Deploys CAST AI Omni Agent for cluster management
+- **GitOps Support**: Optional `skip_helm` parameter to manage Helm releases via GitOps tools (ArgoCD, Flux, etc.)
 - Automatic extraction of network configuration from clusters (including external CIDR from Liqo)
 - Support for both zonal and regional GKE clusters
 - Automatic synchronization with Liqo IPAM for external CIDR allocation
@@ -32,9 +33,15 @@ This Terraform module enables CAST AI Omni functionality for a Kubernetes cluste
 
 ## What This Module Installs
 
-1. **Liqo** - Multi-cluster networking capability for connecting edge locations
-2. **CAST AI Omni Cluster Resource** - Enables Omni functionality in CAST AI
-3. **CAST AI Omni Agent** - Manages cluster connectivity and operations
+This module creates the necessary Kubernetes resources for CAST AI Omni:
+
+1. **Kubernetes Namespace** (`castai-omni`) - Dedicated namespace for CAST AI Omni components
+2. **Kubernetes Secret** - Contains the CAST AI API token for agent authentication
+3. **CAST AI Omni Cluster Resource** - Enables Omni functionality in CAST AI
+4. **CAST AI Omni Agent Helm Chart** (optional, skippable with `skip_helm = true`) - Manages cluster connectivity and operations
+5. **ConfigMap with Helm Values** (created when `skip_helm = true`) - Provides Helm values for GitOps-based deployment
+
+**Note**: When `skip_helm = true`, the module creates only the namespace, secret, ConfigMap, and CAST AI Omni cluster resource, allowing you to manage the Helm chart installation via GitOps tools like ArgoCD or Flux.
 
 ## Usage
 
@@ -179,6 +186,40 @@ module "castai_omni_cluster" {
 }
 ```
 
+### GitOps Example (with skip_helm)
+
+When using GitOps tools like ArgoCD or Flux, you can skip the Helm chart installation by Terraform and manage it via your GitOps workflow:
+
+```hcl
+module "castai_omni_cluster" {
+  source = "github.com/castai/terraform-castai-omni-cluster"
+
+  k8s_provider    = "gke"
+  api_url         = var.castai_api_url
+  api_token       = var.castai_api_token
+  organization_id = var.organization_id
+  cluster_id      = var.cluster_id
+  cluster_name    = var.cluster_name
+  cluster_region  = var.cluster_region
+
+  api_server_address    = var.api_server_address
+  pod_cidr              = var.pod_cidr
+  service_cidr          = var.service_cidr
+  reserved_subnet_cidrs = var.reserved_subnet_cidrs
+
+  # Skip Helm chart installation - manage via GitOps instead
+  skip_helm = true
+}
+```
+
+When `skip_helm = true`, the module creates a ConfigMap named `castai-omni-helm-values` in the `castai-omni` namespace containing:
+- `liqo.version`: The Liqo image tag to use
+- `omni-agent.repository`: CAST AI Helm repository URL
+- `omni-agent.chart`: CAST AI Omni Agent chart name
+- `values.yaml`: Complete Helm values YAML for the CAST AI Omni Agent chart
+
+You can then reference this ConfigMap in your GitOps tools (ArgoCD, Flux, etc.) to install the Helm chart with the correct values.
+
 ### Required Providers
 
 ```hcl
@@ -249,9 +290,10 @@ provider "castai" {
 | api_server_address | Kubernetes API server address | `string` | - | yes |
 | pod_cidr | Pod CIDR for network configuration | `string` | - | yes |
 | service_cidr | Service CIDR for network configuration | `string` | - | yes |
-| reserved_subnet_cidrs | List of reserved subnet CIDRs | `list(string)` | - | yes |
+| reserved_subnet_cidrs | List of reserved subnet CIDRs | `list(string)` | `[]` | no |
 | api_url | CAST AI API URL | `string` | `"https://api.cast.ai"` | no |
-| liqo_chart_version | Liqo Helm chart version | `string` | `"v1.0.1-5"` | no |
+| liqo_image_tag | Liqo image version tag | `string` | `"v1.0.1-5"` | no |
+| skip_helm | Skip installing Helm charts (for GitOps workflows) | `bool` | `false` | no |
 
 ## Outputs
 
@@ -314,15 +356,16 @@ The module includes cloud-specific submodules for optimal Liqo configuration:
 
 The module ensures proper installation order by:
 
-1. **Liqo Installation** - Installs the Liqo Helm chart with network configuration
-2. **Network Resource Readiness Check** - Waits for Liqo network resources to be ready:
-   - Waits for `networks.ipam.liqo.io` CRD to be established
-   - Waits for the external CIDR network resource to be created and populated
-   - Validates that the `status.cidr` field contains the external CIDR value
-3. **CAST AI Omni Cluster** - Enables Omni functionality in CAST AI
-4. **CAST AI Omni Agent** - Deploys the agent for cluster management
+1. **Namespace and Secret Creation** - Creates the `castai-omni` namespace and API token secret
+2. **CAST AI Omni Cluster** - Enables Omni functionality in CAST AI
+3. **CAST AI Omni Agent Installation** (when `skip_helm = false`, default):
+   - Installs the CAST AI Omni Agent Helm chart with the configured values
+   - The agent manages cluster connectivity and operations
 
-This ordering ensures that Liqo's IPAM system is fully initialized and the external CIDR network resource is available before proceeding with CAST AI components.
+**When `skip_helm = true` (GitOps mode)**:
+- Step 3 is skipped, and instead a ConfigMap (`castai-omni-helm-values`) is created
+- The ConfigMap contains all necessary Helm values for manual or GitOps-based deployment
+- You are responsible for installing the CAST AI Omni Agent Helm chart using your preferred deployment method
 
 ## Examples
 
@@ -350,6 +393,7 @@ MIT
 | <a name="requirement_castai"></a> [castai](#requirement\_castai) | >= 8.4.0 |
 | <a name="requirement_external"></a> [external](#requirement\_external) | >= 2.3.5 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | >= 3.1.1 |
+| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | >= 2.35.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | >= 3.2.4 |
 
 ## Providers
@@ -357,9 +401,8 @@ MIT
 | Name | Version |
 |------|---------|
 | <a name="provider_castai"></a> [castai](#provider\_castai) | 8.4.0 |
-| <a name="provider_external"></a> [external](#provider\_external) | 2.3.5 |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
-| <a name="provider_null"></a> [null](#provider\_null) | 3.2.4 |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.0.0 |
 
 ## Modules
 
@@ -374,10 +417,10 @@ MIT
 | Name | Type |
 |------|------|
 | [castai_omni_cluster.this](https://registry.terraform.io/providers/castai/castai/latest/docs/resources/omni_cluster) | resource |
-| [helm_release.liqo](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [helm_release.omni_agent](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
-| [null_resource.wait_for_liqo_network](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [external_external.liqo_external_cidr](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
+| [kubernetes_config_map_v1.helm_values](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map_v1) | resource |
+| [kubernetes_namespace_v1.omni](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace_v1) | resource |
+| [kubernetes_secret_v1.api_token](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret_v1) | resource |
 
 ## Inputs
 
@@ -391,11 +434,12 @@ MIT
 | <a name="input_cluster_region"></a> [cluster\_region](#input\_cluster\_region) | K8s cluster region | `string` | n/a | yes |
 | <a name="input_cluster_zone"></a> [cluster\_zone](#input\_cluster\_zone) | K8s cluster zone | `string` | `""` | no |
 | <a name="input_k8s_provider"></a> [k8s\_provider](#input\_k8s\_provider) | Kubernetes cloud provider (gke, eks, aks) | `string` | n/a | yes |
-| <a name="input_liqo_chart_version"></a> [liqo\_chart\_version](#input\_liqo\_chart\_version) | Liqo helm chart version | `string` | `"v1.0.1-5"` | no |
+| <a name="input_liqo_image_tag"></a> [liqo\_image\_tag](#input\_liqo\_image\_tag) | Liqo image version tag | `string` | `"v1.0.1-5"` | no |
 | <a name="input_organization_id"></a> [organization\_id](#input\_organization\_id) | CAST AI organization ID | `string` | n/a | yes |
 | <a name="input_pod_cidr"></a> [pod\_cidr](#input\_pod\_cidr) | Pod CIDR for network configuration | `string` | n/a | yes |
 | <a name="input_reserved_subnet_cidrs"></a> [reserved\_subnet\_cidrs](#input\_reserved\_subnet\_cidrs) | List of reserved subnet CIDR's (relevant for GKE) | `list(string)` | `[]` | no |
 | <a name="input_service_cidr"></a> [service\_cidr](#input\_service\_cidr) | Service CIDR for network configuration | `string` | n/a | yes |
+| <a name="input_skip_helm"></a> [skip\_helm](#input\_skip\_helm) | Skip installing any helm release; allows managing helm releases using GitOps | `bool` | `false` | no |
 
 ## Outputs
 

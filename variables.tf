@@ -45,8 +45,8 @@ variable "cluster_zone" {
   default     = ""
 }
 
-variable "liqo_chart_version" {
-  description = "Liqo helm chart version"
+variable "liqo_image_tag" {
+  description = "Liqo image version tag"
   type        = string
   default     = "v1.0.1-5"
 }
@@ -70,4 +70,10 @@ variable "reserved_subnet_cidrs" {
   description = "List of reserved subnet CIDR's (relevant for GKE)"
   type        = list(string)
   default     = []
+}
+
+variable "skip_helm" {
+  description = "Skip installing any helm release; allows managing helm releases using GitOps"
+  type        = bool
+  default     = false
 }
