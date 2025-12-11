@@ -48,46 +48,65 @@ module "liqo_helm_values_aks" {
 }
 
 locals {
-  omni_namespace         = "castai-omni"
-  omni_agent_release     = "castai-omni-agent"
-  omni_agent_chart       = "omni-agent"
-  castai_helm_repository = "https://castai.github.io/helm-charts"
-
-  # Omni agent configuration as YAML
-  omni_agent_yaml_values = <<-EOT
-    castai:
-      apiUrl: ${var.api_url}
-      organizationID: ${var.organization_id}
-      clusterID: ${var.cluster_id}
-      clusterName: ${var.cluster_name}
-  EOT
+  omni_namespace          = "castai-omni"
+  omni_agent_release      = "castai-omni-agent"
+  omni_agent_chart        = "omni-agent"
+  castai_helm_repository  = "https://castai.github.io/helm-charts"
+  castai_agent_secret_ref = "castai-omni-agent-token"
 
   # Common Liqo configuration as YAML
-  common_liqo_yaml_values = <<-EOT
-    networking:
-      fabric:
-        config:
-          healthProbeBindAddressPort: '7071'
-          metricsAddressPort: '7072'
-  EOT
+  common_liqo_yaml_values = {
+    networking = {
+      fabric = {
+        config = {
+          healthProbeBindAddressPort = "7071"
+          metricsAddressPort = "7072"
+        }
+      }
+    }
+  }
 
   # Select the appropriate yaml_values based on k8s_provider
-  provider_yaml_values = merge(
+  provider_liqo_yaml_values = merge(
     { for v in module.liqo_helm_values_gke : "gke" => v.liqo_yaml_values },
     { for v in module.liqo_helm_values_eks : "eks" => v.liqo_yaml_values },
     { for v in module.liqo_helm_values_aks : "aks" => v.liqo_yaml_values },
   )
-  provider_specific_yaml_values = local.provider_yaml_values[var.k8s_provider]
+  provider_specific_liqo_yaml_values = local.provider_liqo_yaml_values[var.k8s_provider]
 
   helm_yaml_values = {
     castai = {
-      apiUrl         = var.api_url
-      organizationID = var.organization_id
-      clusterID      = var.cluster_id
-      clusterName    = var.cluster_name
+      apiUrl          = var.api_url
+      apiKeySecretRef = local.castai_agent_secret_ref
+      organizationID  = var.organization_id
+      clusterID       = var.cluster_id
+      clusterName     = var.cluster_name
     }
-    liqo = local.provider_specific_yaml_values.liqo
+    liqo = merge(
+      local.provider_specific_liqo_yaml_values.liqo,
+      local.common_liqo_yaml_values
+    )
   }
+}
+
+resource "kubernetes_namespace_v1" "omni" {
+  metadata {
+    name = local.omni_namespace
+  }
+}
+
+# Secret with API token for GitOps (when skip_helm = true)
+resource "kubernetes_secret_v1" "api_token" {
+  metadata {
+    name      = local.castai_agent_secret_ref
+    namespace = local.omni_namespace
+  }
+
+  data = {
+    "CASTAI_AGENT_TOKEN" = var.api_token
+  }
+
+  depends_on = [kubernetes_namespace_v1.omni]
 }
 
 # CAST AI Omni Agent Helm Release
@@ -103,6 +122,8 @@ resource "helm_release" "omni_agent" {
   wait             = true
 
   values = [yamlencode(local.helm_yaml_values)]
+
+  depends_on = [kubernetes_secret_v1.api_token]
 }
 
 # Enabling CAST AI Omni functionality for a given cluster
@@ -111,30 +132,6 @@ resource "castai_omni_cluster" "this" {
   organization_id = var.organization_id
 
   depends_on = [helm_release.omni_agent]
-}
-
-resource "kubernetes_namespace_v1" "omni" {
-  count = var.skip_helm ? 1 : 0
-
-  metadata {
-    name = local.omni_namespace
-  }
-}
-
-# Secret with API token for GitOps (when skip_helm = true)
-resource "kubernetes_secret_v1" "api_token" {
-  count = var.skip_helm ? 1 : 0
-
-  metadata {
-    name      = "castai-omni-agent-token"
-    namespace = local.omni_namespace
-  }
-
-  data = {
-    "CASTAI_AGENT_TOKEN" = var.api_token
-  }
-
-  depends_on = [kubernetes_namespace_v1.omni]
 }
 
 # ConfigMap with helm values for GitOps (when skip_helm = true)

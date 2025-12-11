@@ -22,6 +22,8 @@ module "castai_omni_cluster" {
   api_server_address = data.aws_eks_cluster.eks.endpoint
   pod_cidr           = data.aws_vpc.eks_vpc.cidr_block
   service_cidr       = data.aws_eks_cluster.eks.kubernetes_network_config[0].service_ipv4_cidr
+
+  skip_helm = var.skip_helm
 }
 
 module "castai_aws_edge_location" {

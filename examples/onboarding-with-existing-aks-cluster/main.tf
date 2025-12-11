@@ -17,6 +17,8 @@ module "castai_omni_cluster" {
   api_server_address = "https://${data.azurerm_kubernetes_cluster.aks.fqdn}"
   pod_cidr           = data.azurerm_kubernetes_cluster.aks.network_profile[0].pod_cidr
   service_cidr       = data.azurerm_kubernetes_cluster.aks.network_profile[0].service_cidr
+
+  skip_helm = var.skip_helm
 }
 
 module "castai_omni_edge_location_gcp" {
