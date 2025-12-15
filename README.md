@@ -25,6 +25,7 @@ This Terraform module enables CAST AI Omni functionality for a Kubernetes cluste
 - Terraform >= 1.10
 - CAST AI Terraform provider >= 8.4.0
 - Helm provider >= 3.1.1
+- Kubernetes provider >= 2.35.0
 - Null provider >= 3.2.4
 - External provider >= 2.3.5
 - Google provider >= 4.0 (for GKE clusters)
@@ -220,17 +221,11 @@ When `skip_helm = true`, the module creates a ConfigMap named `castai-omni-helm-
 
 You can then reference this ConfigMap in your GitOps tools (ArgoCD, Flux, etc.) to install the Helm chart with the correct values.
 
-### Required Providers
+### Provider Configuration
+
+#### GKE Provider Configuration
 
 ```hcl
-data "google_client_config" "default" {}
-
-data "google_container_cluster" "gke" {
-  project  = var.gke_project_id
-  location = var.gke_cluster_location
-  name     = var.gke_cluster_name
-}
-
 terraform {
   required_version = ">= 1.10"
 
@@ -245,15 +240,11 @@ terraform {
     }
     helm = {
       source  = "hashicorp/helm"
-      version = ">= 3.1.1"
+      version = ">= 2.0"
     }
-    null = {
-      source  = "hashicorp/null"
-      version = ">= 3.2.4"
-    }
-    external = {
-      source  = "hashicorp/external"
-      version = ">= 2.3.5"
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.35.0"
     }
   }
 }
@@ -268,6 +259,137 @@ provider "helm" {
     token                  = data.google_client_config.default.access_token
     cluster_ca_certificate = base64decode(data.google_container_cluster.gke.master_auth.0.cluster_ca_certificate)
   }
+}
+
+provider "kubernetes" {
+  host                   = "https://${data.google_container_cluster.gke.endpoint}"
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(data.google_container_cluster.gke.master_auth.0.cluster_ca_certificate)
+}
+
+provider "castai" {
+  api_token = var.castai_api_token
+  api_url   = var.castai_api_url
+}
+```
+
+#### EKS Provider Configuration
+
+```hcl
+terraform {
+  required_version = ">= 1.10"
+
+  required_providers {
+    castai = {
+      source  = "castai/castai"
+      version = ">= 8.4.0"
+    }
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 6.23.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = ">= 3.1.1"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.35.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = var.eks_cluster_region
+}
+
+provider "helm" {
+  kubernetes = {
+    host                   = data.aws_eks_cluster.eks.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
+    exec = {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args = [
+        "eks",
+        "get-token",
+        "--cluster-name",
+        data.aws_eks_cluster.eks.name,
+        "--region",
+        var.eks_cluster_region
+      ]
+    }
+  }
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.eks.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args = [
+      "eks",
+      "get-token",
+      "--cluster-name",
+      data.aws_eks_cluster.eks.name,
+      "--region",
+      var.eks_cluster_region
+    ]
+  }
+}
+
+provider "castai" {
+  api_token = var.castai_api_token
+  api_url   = var.castai_api_url
+}
+```
+
+#### AKS Provider Configuration
+
+```hcl
+terraform {
+  required_version = ">= 1.10"
+
+  required_providers {
+    castai = {
+      source  = "castai/castai"
+      version = ">= 8.4.0"
+    }
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">= 3.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = ">= 2.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.35.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  subscription_id = var.azure_subscription_id
+  features {}
+}
+
+provider "helm" {
+  kubernetes = {
+    host                   = data.azurerm_kubernetes_cluster.aks.kube_config[0].host
+    client_certificate     = base64decode(data.azurerm_kubernetes_cluster.aks.kube_config[0].client_certificate)
+    client_key             = base64decode(data.azurerm_kubernetes_cluster.aks.kube_config[0].client_key)
+    cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.aks.kube_config[0].cluster_ca_certificate)
+  }
+}
+
+provider "kubernetes" {
+  host                   = data.azurerm_kubernetes_cluster.aks.kube_config[0].host
+  client_certificate     = base64decode(data.azurerm_kubernetes_cluster.aks.kube_config[0].client_certificate)
+  client_key             = base64decode(data.azurerm_kubernetes_cluster.aks.kube_config[0].client_key)
+  cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.aks.kube_config[0].cluster_ca_certificate)
 }
 
 provider "castai" {

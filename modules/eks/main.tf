@@ -28,7 +28,7 @@ locals {
       }
       virtualKubelet = {
         extra = {
-          args = "--certificate-type=aws"
+          args = ["--certificate-type=aws"]
         }
       }
       networking = {
