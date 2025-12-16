@@ -1,8 +1,3 @@
-variable "image_tag" {
-  description = "Docker image tag"
-  type        = string
-}
-
 variable "cluster_name" {
   description = "GKE cluster name"
   type        = string

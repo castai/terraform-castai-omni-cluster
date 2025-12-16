@@ -5,7 +5,6 @@ locals {
   liqo_yaml_values = {
     liqo = {
       enabled = true
-      tag     = var.image_tag
       apiServer = {
         address = var.api_server_address
       }
