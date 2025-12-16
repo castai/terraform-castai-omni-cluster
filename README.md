@@ -529,6 +529,7 @@ MIT
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_liqo_helm_values"></a> [liqo\_helm\_values](#module\_liqo\_helm\_values) | cloudposse/config/yaml//modules/deepmerge | 0.2.0 |
 | <a name="module_liqo_helm_values_aks"></a> [liqo\_helm\_values\_aks](#module\_liqo\_helm\_values\_aks) | ./modules/aks | n/a |
 | <a name="module_liqo_helm_values_eks"></a> [liqo\_helm\_values\_eks](#module\_liqo\_helm\_values\_eks) | ./modules/eks | n/a |
 | <a name="module_liqo_helm_values_gke"></a> [liqo\_helm\_values\_gke](#module\_liqo\_helm\_values\_gke) | ./modules/gke | n/a |
