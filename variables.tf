@@ -48,7 +48,7 @@ variable "cluster_zone" {
 variable "liqo_image_tag" {
   description = "Liqo image version tag"
   type        = string
-  default     = "v1.0.1-5"
+  default     = "v1.0.1-6"
 }
 
 variable "api_server_address" {
