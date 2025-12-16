@@ -64,13 +64,23 @@ locals {
   }
 
   # Select the appropriate yaml_values based on k8s_provider
-  provider_liqo_yaml_values = merge(
+  liqo_yaml_values = merge(
     { for v in module.liqo_helm_values_gke : "gke" => v.liqo_yaml_values },
     { for v in module.liqo_helm_values_eks : "eks" => v.liqo_yaml_values },
     { for v in module.liqo_helm_values_aks : "aks" => v.liqo_yaml_values },
   )
-  provider_specific_liqo_yaml_values = local.provider_liqo_yaml_values[var.k8s_provider]
+}
 
+module "liqo_helm_values" {
+  source  = "cloudposse/config/yaml//modules/deepmerge"
+  version = "0.2.0"
+  maps = [
+    local.common_liqo_yaml_values,
+    local.liqo_yaml_values[var.k8s_provider].liqo,
+  ]
+}
+
+locals {
   helm_yaml_values = {
     castai = {
       apiUrl          = var.api_url
@@ -79,10 +89,7 @@ locals {
       clusterID       = var.cluster_id
       clusterName     = var.cluster_name
     }
-    liqo = merge(
-      local.provider_specific_liqo_yaml_values.liqo,
-      local.common_liqo_yaml_values
-    )
+    liqo = module.liqo_helm_values.merged
   }
 }
 
