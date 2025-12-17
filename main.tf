@@ -120,6 +120,7 @@ resource "helm_release" "omni_agent" {
   name             = local.omni_agent_release
   repository       = local.castai_helm_repository
   chart            = local.omni_agent_chart
+  version          = var.omni_agent_chart_version
   namespace        = local.omni_namespace
   create_namespace = false
   cleanup_on_fail  = true
