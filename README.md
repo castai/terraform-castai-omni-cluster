@@ -414,6 +414,7 @@ provider "castai" {
 | service_cidr | Service CIDR for network configuration | `string` | - | yes |
 | reserved_subnet_cidrs | List of reserved subnet CIDRs | `list(string)` | `[]` | no |
 | api_url | CAST AI API URL | `string` | `"https://api.cast.ai"` | no |
+| omni_agent_chart_version | OMNI agent Helm chart version | `string` | `"v1.1.4"` | no |
 | skip_helm | Skip installing Helm charts (for GitOps workflows) | `bool` | `false` | no |
 
 ## Outputs
@@ -556,6 +557,7 @@ MIT
 | <a name="input_cluster_region"></a> [cluster\_region](#input\_cluster\_region) | K8s cluster region | `string` | n/a | yes |
 | <a name="input_cluster_zone"></a> [cluster\_zone](#input\_cluster\_zone) | K8s cluster zone | `string` | `""` | no |
 | <a name="input_k8s_provider"></a> [k8s\_provider](#input\_k8s\_provider) | Kubernetes cloud provider (gke, eks, aks) | `string` | n/a | yes |
+| <a name="input_omni_agent_chart_version"></a> [omni\_agent\_chart\_version](#input\_omni\_agent\_chart\_version) | OMNI agent helm chart version | `string` | `"v1.1.4"` | no |
 | <a name="input_organization_id"></a> [organization\_id](#input\_organization\_id) | CAST AI organization ID | `string` | n/a | yes |
 | <a name="input_pod_cidr"></a> [pod\_cidr](#input\_pod\_cidr) | Pod CIDR for network configuration | `string` | n/a | yes |
 | <a name="input_reserved_subnet_cidrs"></a> [reserved\_subnet\_cidrs](#input\_reserved\_subnet\_cidrs) | List of reserved subnet CIDR's (relevant for GKE) | `list(string)` | `[]` | no |
