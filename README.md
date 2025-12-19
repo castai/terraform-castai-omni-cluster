@@ -414,7 +414,7 @@ provider "castai" {
 | service_cidr | Service CIDR for network configuration | `string` | - | yes |
 | reserved_subnet_cidrs | List of reserved subnet CIDRs | `list(string)` | `[]` | no |
 | api_url | CAST AI API URL | `string` | `"https://api.cast.ai"` | no |
-| omni_agent_chart_version | OMNI agent Helm chart version | `string` | `"v1.1.6"` | no |
+| omni_agent_chart_version | OMNI agent Helm chart version | `string` | `"v1.1.8"` | no |
 | skip_helm | Skip installing Helm charts (for GitOps workflows) | `bool` | `false` | no |
 
 ## Outputs
@@ -522,9 +522,9 @@ MIT
 
 | Name | Version |
 |------|---------|
-| <a name="provider_castai"></a> [castai](#provider\_castai) | >= 8.4.0 |
-| <a name="provider_helm"></a> [helm](#provider\_helm) | >= 3.1.1 |
-| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | >= 2.35.0 |
+| <a name="provider_castai"></a> [castai](#provider\_castai) | 8.6.0 |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.0.1 |
 
 ## Modules
 
