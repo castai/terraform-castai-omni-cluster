@@ -1,8 +1,3 @@
-variable "cluster_name" {
-  description = "EKS cluster name"
-  type        = string
-}
-
 variable "api_server_address" {
   description = "Kubernetes API server address"
   type        = string

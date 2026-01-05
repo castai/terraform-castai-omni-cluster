@@ -1,3 +1,5 @@
+# List of subnets to be reserved so that liqo does not use them. 
+# It is good practice to reserve at least the subnet CIDR range used by the cluster nodes.
 check "reserved_cidrs_required_for_gke" {
   assert {
     condition     = var.k8s_provider != "gke" || (var.reserved_subnet_cidrs != null && length(var.reserved_subnet_cidrs) > 0)
@@ -10,7 +12,6 @@ module "liqo_helm_values_gke" {
   count  = var.k8s_provider == "gke" ? 1 : 0
   source = "./modules/gke"
 
-  cluster_name          = var.cluster_name
   api_server_address    = var.api_server_address
   pod_cidr              = var.pod_cidr
   service_cidr          = var.service_cidr
@@ -22,7 +23,6 @@ module "liqo_helm_values_eks" {
   count  = var.k8s_provider == "eks" ? 1 : 0
   source = "./modules/eks"
 
-  cluster_name       = var.cluster_name
   api_server_address = var.api_server_address
   pod_cidr           = var.pod_cidr
   service_cidr       = var.service_cidr
@@ -33,7 +33,6 @@ module "liqo_helm_values_aks" {
   count  = var.k8s_provider == "aks" ? 1 : 0
   source = "./modules/aks"
 
-  cluster_name       = var.cluster_name
   api_server_address = var.api_server_address
   pod_cidr           = var.pod_cidr
   service_cidr       = var.service_cidr
@@ -46,12 +45,45 @@ locals {
   castai_helm_repository  = "https://castai.github.io/helm-charts"
   castai_agent_secret_ref = "castai-omni-agent-token"
 
+  # Common pools CIDRs used across all providers
+  pools_cidrs = ["10.0.0.0/8", "192.168.0.0/16", "172.16.0.0/12", var.service_cidr]
+
+  # Common Liqo configuration as YAML
+  common_liqo_yaml_values = {
+    enabled = true
+    apiServer = {
+      address = var.api_server_address
+    }
+    discovery = {
+      config = {
+        clusterID = var.cluster_name
+      }
+    }
+    ipam = {
+      podCIDR     = var.pod_cidr
+      serviceCIDR = var.service_cidr
+      pools       = local.pools_cidrs
+    }
+    telemetry = {
+      enabled = false
+    }
+  }
+
   # Select the appropriate yaml_values based on k8s_provider
   liqo_yaml_values = merge(
     { for v in module.liqo_helm_values_gke : "gke" => v.liqo_yaml_values },
     { for v in module.liqo_helm_values_eks : "eks" => v.liqo_yaml_values },
     { for v in module.liqo_helm_values_aks : "aks" => v.liqo_yaml_values },
   )
+}
+
+module "liqo_helm_values" {
+  source  = "cloudposse/config/yaml//modules/deepmerge"
+  version = "0.2.0"
+  maps = [
+    local.common_liqo_yaml_values,
+    local.liqo_yaml_values[var.k8s_provider].liqo,
+  ]
 }
 
 locals {
@@ -63,7 +95,7 @@ locals {
       clusterID       = var.cluster_id
       clusterName     = var.cluster_name
     }
-    liqo = local.liqo_yaml_values[var.k8s_provider].liqo
+    liqo = module.liqo_helm_values.merged
   }
 }
 
