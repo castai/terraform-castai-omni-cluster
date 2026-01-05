@@ -3,11 +3,6 @@ variable "cluster_name" {
   type        = string
 }
 
-variable "cluster_region" {
-  description = "EKS region for topology labels"
-  type        = string
-}
-
 variable "api_server_address" {
   description = "Kubernetes API server address"
   type        = string

@@ -1,6 +1,5 @@
 locals {
   pools_cidrs = ["10.0.0.0/8", "192.168.0.0/16", "172.16.0.0/12", var.service_cidr]
-  provider    = "aks"
 
   liqo_yaml_values = {
     liqo = {
@@ -11,15 +10,6 @@ locals {
       discovery = {
         config = {
           clusterID = var.cluster_name
-          clusterLabels = merge(
-            {
-              "liqo.io/provider"              = local.provider
-              "topology.kubernetes.io/region" = var.cluster_region
-            },
-            var.cluster_zone != "" ? {
-              "topology.kubernetes.io/zone" = var.cluster_zone
-            } : {}
-          )
         }
       }
       ipam = {
@@ -29,6 +19,22 @@ locals {
       }
       telemetry = {
         enabled = false
+      }
+      networking = {
+        fabric = {
+          config = {
+            gatewayMasqueradeBypass = true
+          }
+        }
+      }
+      virtualKubelet = {
+        virtualNode = {
+          extra = {
+            labels = {
+              "kubernetes.azure.com/managed" = "false"
+            }
+          }
+        }
       }
     }
   }
