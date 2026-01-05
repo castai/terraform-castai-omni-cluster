@@ -1,17 +1,6 @@
 variable "cluster_name" {
-  description = "GKE cluster name"
+  description = "AKS cluster name"
   type        = string
-}
-
-variable "cluster_region" {
-  description = "GKE region for topology labels"
-  type        = string
-}
-
-variable "cluster_zone" {
-  description = "GKE zone for topology labels (optional)"
-  type        = string
-  default     = ""
 }
 
 variable "api_server_address" {

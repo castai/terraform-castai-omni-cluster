@@ -14,7 +14,6 @@ locals {
   # Determine region from location (if zonal, extract region; if regional, use as-is)
   is_zonal_cluster = length(regexall("^.*-[a-z]$", var.gke_cluster_location)) > 0
   cluster_region   = local.is_zonal_cluster ? regex("^(.*)-[a-z]$", var.gke_cluster_location)[0] : var.gke_cluster_location
-  cluster_zone     = local.is_zonal_cluster ? var.gke_cluster_location : ""
 }
 
 # Get subnet details to retrieve the IP CIDR range
@@ -33,8 +32,6 @@ module "castai_omni_cluster" {
   organization_id = var.organization_id
   cluster_id      = var.cluster_id
   cluster_name    = var.gke_cluster_name
-  cluster_region  = local.cluster_region
-  cluster_zone    = local.cluster_zone
 
   api_server_address    = "https://${data.google_container_cluster.gke.endpoint}"
   pod_cidr              = data.google_container_cluster.gke.cluster_ipv4_cidr

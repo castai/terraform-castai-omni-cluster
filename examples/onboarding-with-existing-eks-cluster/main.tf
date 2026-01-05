@@ -17,7 +17,6 @@ module "castai_omni_cluster" {
   organization_id = var.organization_id
   cluster_id      = var.cluster_id
   cluster_name    = var.eks_cluster_name
-  cluster_region  = var.eks_cluster_region
 
   api_server_address = data.aws_eks_cluster.eks.endpoint
   pod_cidr           = data.aws_vpc.eks_vpc.cidr_block

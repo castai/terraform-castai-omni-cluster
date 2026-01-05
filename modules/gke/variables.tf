@@ -3,17 +3,6 @@ variable "cluster_name" {
   type        = string
 }
 
-variable "cluster_region" {
-  description = "GKE region for topology labels"
-  type        = string
-}
-
-variable "cluster_zone" {
-  description = "GKE zone for topology labels (optional)"
-  type        = string
-  default     = ""
-}
-
 variable "api_server_address" {
   description = "Kubernetes API server address"
   type        = string

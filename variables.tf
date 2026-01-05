@@ -34,17 +34,6 @@ variable "cluster_name" {
   type        = string
 }
 
-variable "cluster_region" {
-  description = "K8s cluster region"
-  type        = string
-}
-
-variable "cluster_zone" {
-  description = "K8s cluster zone"
-  type        = string
-  default     = ""
-}
-
 variable "api_server_address" {
   description = "K8s API server address"
   type        = string
@@ -69,7 +58,7 @@ variable "reserved_subnet_cidrs" {
 variable "omni_agent_chart_version" {
   description = "OMNI agent helm chart version"
   type        = string
-  default     = "v1.1.8"
+  default     = "v1.1.9"
 }
 
 variable "skip_helm" {
