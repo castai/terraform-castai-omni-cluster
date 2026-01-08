@@ -17,7 +17,6 @@ module "castai_omni_cluster" {
   organization_id = var.organization_id
   cluster_id      = var.cluster_id
   cluster_name    = var.eks_cluster_name
-  cluster_region  = var.eks_cluster_region
 
   api_server_address = data.aws_eks_cluster.eks.endpoint
   pod_cidr           = data.aws_vpc.eks_vpc.cidr_block
@@ -26,8 +25,9 @@ module "castai_omni_cluster" {
   skip_helm = var.skip_helm
 }
 
-module "castai_aws_edge_location" {
-  source = "github.com/castai/terraform-castai-omni-edge-location-aws"
+module "castai_omni_edge_location_aws" {
+  source  = "castai/omni-edge-location-aws/castai"
+  version = "~> 1"
 
   providers = {
     aws = aws.eu_west_1
@@ -36,6 +36,7 @@ module "castai_aws_edge_location" {
   cluster_id      = module.castai_omni_cluster.cluster_id
   organization_id = module.castai_omni_cluster.organization_id
   region          = "eu-west-1"
+  zones           = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
 
   tags = {
     ManagedBy = "terraform"

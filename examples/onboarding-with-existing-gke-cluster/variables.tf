@@ -4,7 +4,7 @@ variable "gke_project_id" {
 }
 
 variable "gke_cluster_location" {
-  description = "GKE Cluster Location"
+  description = "GKE Cluster Location (region or zone)"
   type        = string
 }
 

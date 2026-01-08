@@ -6,6 +6,7 @@
 *.tfstate
 *.tfstate.*
 *.tfvars
+examples/**/**/tf.vars
 
 # AI
 CLAUDE.md

@@ -11,8 +11,6 @@ module "liqo_helm_values_gke" {
   source = "./modules/gke"
 
   cluster_name          = var.cluster_name
-  cluster_region        = var.cluster_region
-  cluster_zone          = var.cluster_zone
   api_server_address    = var.api_server_address
   pod_cidr              = var.pod_cidr
   service_cidr          = var.service_cidr
@@ -25,7 +23,6 @@ module "liqo_helm_values_eks" {
   source = "./modules/eks"
 
   cluster_name       = var.cluster_name
-  cluster_region     = var.cluster_region
   api_server_address = var.api_server_address
   pod_cidr           = var.pod_cidr
   service_cidr       = var.service_cidr
@@ -37,8 +34,6 @@ module "liqo_helm_values_aks" {
   source = "./modules/aks"
 
   cluster_name       = var.cluster_name
-  cluster_region     = var.cluster_region
-  cluster_zone       = var.cluster_zone
   api_server_address = var.api_server_address
   pod_cidr           = var.pod_cidr
   service_cidr       = var.service_cidr
@@ -51,33 +46,12 @@ locals {
   castai_helm_repository  = "https://castai.github.io/helm-charts"
   castai_agent_secret_ref = "castai-omni-agent-token"
 
-  # Common Liqo configuration as YAML
-  common_liqo_yaml_values = {
-    networking = {
-      fabric = {
-        config = {
-          healthProbeBindAddressPort = "7071"
-          metricsAddressPort = "7072"
-        }
-      }
-    }
-  }
-
   # Select the appropriate yaml_values based on k8s_provider
   liqo_yaml_values = merge(
     { for v in module.liqo_helm_values_gke : "gke" => v.liqo_yaml_values },
     { for v in module.liqo_helm_values_eks : "eks" => v.liqo_yaml_values },
     { for v in module.liqo_helm_values_aks : "aks" => v.liqo_yaml_values },
   )
-}
-
-module "liqo_helm_values" {
-  source  = "cloudposse/config/yaml//modules/deepmerge"
-  version = "0.2.0"
-  maps = [
-    local.common_liqo_yaml_values,
-    local.liqo_yaml_values[var.k8s_provider].liqo,
-  ]
 }
 
 locals {
@@ -89,7 +63,7 @@ locals {
       clusterID       = var.cluster_id
       clusterName     = var.cluster_name
     }
-    liqo = module.liqo_helm_values.merged
+    liqo = local.liqo_yaml_values[var.k8s_provider].liqo
   }
 }
 

@@ -93,19 +93,13 @@ module "castai-omni-cluster" {
   reserved_subnet_cidrs = [data.google_compute_subnetwork.gke_subnet.ip_cidr_range]
 }
 
-module "castai_gcp_edge_location" {
-  source = "github.com/castai/terraform-castai-omni-edge-location"
+module "castai_omni_edge_location_gcp" {
+  source = "castai/omni-edge-location-gcp/castai"
 
   cluster_id      = var.cluster_id
   organization_id = var.organization_id
 
-  gcp = {
-    region = "europe-west4"
-  }
-
-  tags = {
-    ManagedBy = "terraform"
-  }
+  region = "europe-west4"
 
   depends_on = [module.castai-omni-cluster]
 }
@@ -139,7 +133,7 @@ locals {
 }
 
 module "castai_omni_cluster" {
-  source = "github.com/castai/terraform-castai-omni-cluster"
+  source = "castai/omni-cluster/castai"
 
   k8s_provider    = "eks"  # Specify cloud provider: "gke", "eks", or "aks"
   api_url         = var.castai_api_url
@@ -170,7 +164,7 @@ data "azurerm_virtual_network" "aks_vnet" {
 }
 
 module "castai_omni_cluster" {
-  source = "github.com/castai/terraform-castai-omni-cluster"
+  source = "castai/omni-cluster/castai"
 
   k8s_provider    = "aks"  # Specify cloud provider: "gke", "eks", or "aks"
   api_url         = var.castai_api_url
@@ -193,7 +187,7 @@ When using GitOps tools like ArgoCD or Flux, you can skip the Helm chart install
 
 ```hcl
 module "castai_omni_cluster" {
-  source = "github.com/castai/terraform-castai-omni-cluster"
+  source = "castai/omni-cluster/castai"
 
   k8s_provider    = "gke"
   api_url         = var.castai_api_url
@@ -498,10 +492,13 @@ Complete working examples are available for all supported cloud providers:
 
 ## Related Modules
 
-- [terraform-castai-omni-edge-location](https://github.com/castai/terraform-castai-omni-edge-location) - Create and manage edge locations for Omni clusters
+- [terraform-castai-omni-cluster](https://github.com/castai/terraform-castai-omni-cluster) - Create and manage Omni clusters
+- [terraform-castai-omni-edge-location-gcp](https://github.com/castai/terraform-castai-omni-edge-location-gcp) - Create and manage GCP edge locations for Omni clusters
+- [terraform-castai-omni-edge-location-aws](https://github.com/castai/terraform-castai-omni-edge-location-aws) - Create and manage AWS edge locations for Omni clusters
+- [terraform-castai-omni-edge-location-oci](https://github.com/castai/terraform-castai-omni-edge-location-oci) - Create and manage OCI edge locations for Omni clusters
 - [terraform-castai-gke-cluster](https://github.com/castai/terraform-castai-gke-cluster) - Onboard GKE clusters to CAST AI
 - [terraform-castai-eks-cluster](https://github.com/castai/terraform-castai-eks-cluster) - Onboard EKS clusters to CAST AI
-- [terraform-castai-aks-cluster](https://github.com/castai/terraform-castai-aks-cluster) - Onboard AKS clusters to CAST AI
+- [terraform-castai-aks-cluster](https://github.com/castai/terraform-castai-aks) - Onboard AKS clusters to CAST AI
 
 ## License
 
@@ -522,7 +519,7 @@ MIT
 
 | Name | Version |
 |------|---------|
-| <a name="provider_castai"></a> [castai](#provider\_castai) | 8.6.0 |
+| <a name="provider_castai"></a> [castai](#provider\_castai) | 8.8.0 |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.0.1 |
 
@@ -530,7 +527,6 @@ MIT
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_liqo_helm_values"></a> [liqo\_helm\_values](#module\_liqo\_helm\_values) | cloudposse/config/yaml//modules/deepmerge | 0.2.0 |
 | <a name="module_liqo_helm_values_aks"></a> [liqo\_helm\_values\_aks](#module\_liqo\_helm\_values\_aks) | ./modules/aks | n/a |
 | <a name="module_liqo_helm_values_eks"></a> [liqo\_helm\_values\_eks](#module\_liqo\_helm\_values\_eks) | ./modules/eks | n/a |
 | <a name="module_liqo_helm_values_gke"></a> [liqo\_helm\_values\_gke](#module\_liqo\_helm\_values\_gke) | ./modules/gke | n/a |
@@ -554,10 +550,8 @@ MIT
 | <a name="input_api_url"></a> [api\_url](#input\_api\_url) | CAST AI API URL | `string` | `"https://api.cast.ai"` | no |
 | <a name="input_cluster_id"></a> [cluster\_id](#input\_cluster\_id) | CAST AI cluster ID to enable Omni functionality for | `string` | n/a | yes |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | CAST AI cluster name | `string` | n/a | yes |
-| <a name="input_cluster_region"></a> [cluster\_region](#input\_cluster\_region) | K8s cluster region | `string` | n/a | yes |
-| <a name="input_cluster_zone"></a> [cluster\_zone](#input\_cluster\_zone) | K8s cluster zone | `string` | `""` | no |
 | <a name="input_k8s_provider"></a> [k8s\_provider](#input\_k8s\_provider) | Kubernetes cloud provider (gke, eks, aks) | `string` | n/a | yes |
-| <a name="input_omni_agent_chart_version"></a> [omni\_agent\_chart\_version](#input\_omni\_agent\_chart\_version) | OMNI agent helm chart version | `string` | `"v1.1.8"` | no |
+| <a name="input_omni_agent_chart_version"></a> [omni\_agent\_chart\_version](#input\_omni\_agent\_chart\_version) | OMNI agent helm chart version | `string` | `"v1.1.9"` | no |
 | <a name="input_organization_id"></a> [organization\_id](#input\_organization\_id) | CAST AI organization ID | `string` | n/a | yes |
 | <a name="input_pod_cidr"></a> [pod\_cidr](#input\_pod\_cidr) | Pod CIDR for network configuration | `string` | n/a | yes |
 | <a name="input_reserved_subnet_cidrs"></a> [reserved\_subnet\_cidrs](#input\_reserved\_subnet\_cidrs) | List of reserved subnet CIDR's (relevant for GKE) | `list(string)` | `[]` | no |
