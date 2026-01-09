@@ -66,3 +66,17 @@ variable "skip_helm" {
   type        = bool
   default     = false
 }
+
+# tflint-ignore: terraform_unused_declarations
+variable "cluster_region" {
+  description = "Not used. This variable is kept for backwards compatibility, will be removed in the future."
+  type        = string
+  default     = ""
+}
+
+# tflint-ignore: terraform_unused_declarations
+variable "cluster_zone" {
+  description = "Not used. This variable is kept for backwards compatibility, will be removed in the future."
+  type        = string
+  default     = ""
+}
