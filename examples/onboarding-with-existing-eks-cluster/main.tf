@@ -27,7 +27,7 @@ module "castai_omni_cluster" {
 
 module "castai_omni_edge_location_aws" {
   source  = "castai/omni-edge-location-aws/castai"
-  version = "~> 1"
+  version = "~> 1.0"
 
   providers = {
     aws = aws.eu_west_1
