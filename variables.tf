@@ -58,7 +58,7 @@ variable "reserved_subnet_cidrs" {
 variable "omni_agent_chart_version" {
   description = "OMNI agent helm chart version"
   type        = string
-  default     = "v1.1.9"
+  default     = "1.1.10"
 }
 
 variable "skip_helm" {
