@@ -1,0 +1,7 @@
+cluster_region = "<placeholder>"
+cluster_name   = "<placeholder>"
+
+castai_api_url   = "https://api.cast.ai"
+castai_grpc_url  = "grpc.cast.ai:443"
+castai_api_token = "<placeholder>"
+organization_id  = "<placeholder>"
