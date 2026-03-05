@@ -13,9 +13,10 @@ locals {
         }
       }
       ipam = {
-        podCIDR     = var.pod_cidr
-        serviceCIDR = var.service_cidr
-        pools       = local.pools_cidrs
+        podCIDR         = var.pod_cidr
+        serviceCIDR     = var.service_cidr
+        pools           = local.pools_cidrs
+        reservedSubnets = var.reserved_subnet_cidrs
       }
       telemetry = {
         enabled = false
