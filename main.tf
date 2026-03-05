@@ -22,10 +22,11 @@ module "liqo_helm_values_eks" {
   count  = var.k8s_provider == "eks" ? 1 : 0
   source = "./modules/eks"
 
-  cluster_name       = var.cluster_name
-  api_server_address = var.api_server_address
-  pod_cidr           = var.pod_cidr
-  service_cidr       = var.service_cidr
+  cluster_name          = var.cluster_name
+  api_server_address    = var.api_server_address
+  pod_cidr              = var.pod_cidr
+  service_cidr          = var.service_cidr
+  reserved_subnet_cidrs = var.reserved_subnet_cidrs
 }
 
 # AKS-specific Liqo Helm chart configuration
@@ -33,10 +34,11 @@ module "liqo_helm_values_aks" {
   count  = var.k8s_provider == "aks" ? 1 : 0
   source = "./modules/aks"
 
-  cluster_name       = var.cluster_name
-  api_server_address = var.api_server_address
-  pod_cidr           = var.pod_cidr
-  service_cidr       = var.service_cidr
+  cluster_name          = var.cluster_name
+  api_server_address    = var.api_server_address
+  pod_cidr              = var.pod_cidr
+  service_cidr          = var.service_cidr
+  reserved_subnet_cidrs = var.reserved_subnet_cidrs
 }
 
 locals {

@@ -17,3 +17,9 @@ variable "service_cidr" {
   description = "Service CIDR for IPAM configuration"
   type        = string
 }
+
+variable "reserved_subnet_cidrs" {
+  description = "List of reserved subnet CIDRs that should not be allocated by Liqo IPAM (e.g. VPC peering CIDRs)"
+  type        = list(string)
+  default     = []
+}
