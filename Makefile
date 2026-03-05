@@ -5,6 +5,7 @@ generate-docs:
 		echo "terraform-docs not found, installing..."; \
 		go install github.com/terraform-docs/terraform-docs@v0.20.0; \
 	fi
+	terraform init -upgrade
 	terraform-docs markdown table --output-file README.md --output-mode inject .
 
 lint:
