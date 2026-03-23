@@ -48,6 +48,9 @@ locals {
   castai_helm_repository  = "https://castai.github.io/helm-charts"
   castai_agent_secret_ref = "castai-omni-agent-token"
 
+  storage_provider      = var.storage_provider != null ? var.storage_provider : (var.k8s_provider == "gke" ? "premium-rwo" : (var.k8s_provider == "eks" ? "gp3" : ""))
+  loadbalancer_provider = var.loadbalancer_provider != null ? var.loadbalancer_provider : (var.k8s_provider == "eks" ? "external" : "")
+
   # Select the appropriate yaml_values based on k8s_provider
   liqo_yaml_values = merge(
     { for v in module.liqo_helm_values_gke : "gke" => v.liqo_yaml_values },
@@ -60,12 +63,17 @@ locals {
   helm_yaml_values = {
     castai = {
       apiUrl          = var.api_url
+      grpcAddr        = var.kvisor_grpc_url
       apiKeySecretRef = local.castai_agent_secret_ref
       organizationID  = var.organization_id
       clusterID       = var.cluster_id
       clusterName     = var.cluster_name
     }
     liqo = local.liqo_yaml_values[var.k8s_provider].liqo
+    edgeCluster = {
+      storageProvider      = local.storage_provider
+      loadBalancerProvider = local.loadbalancer_provider
+    }
   }
 }
 
