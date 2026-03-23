@@ -2,6 +2,7 @@ eks_cluster_region = "<place-holder>"
 eks_cluster_name   = "<place-holder>"
 
 castai_api_url   = "https://api.cast.ai"
+kvisor_grpc_url  = "kvisor.prod-master.cast.ai:443"
 castai_api_token = "<place-holder>"
 organization_id  = "<place-holder>"
 cluster_id       = "<place-holder>"

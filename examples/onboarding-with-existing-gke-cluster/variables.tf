@@ -19,6 +19,12 @@ variable "castai_api_url" {
   default     = "https://api.cast.ai"
 }
 
+variable "kvisor_grpc_url" {
+  description = "Kvisor gRPC URL"
+  type        = string
+  default     = "kvisor.prod-master.cast.ai:443"
+}
+
 variable "castai_api_token" {
   description = "Cast AI API Token"
   type        = string

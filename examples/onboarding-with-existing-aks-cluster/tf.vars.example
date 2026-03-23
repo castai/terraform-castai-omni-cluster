@@ -4,6 +4,7 @@ aks_resource_group    = "<place-holder>"
 gke_project_id        = "<place-holder>"
 
 castai_api_url   = "https://api.cast.ai"
+kvisor_grpc_url  = "kvisor.prod-master.cast.ai:443"
 castai_api_token = "<place-holder>"
 cluster_id       = "<place-holder>"
 organization_id  = "<place-holder>"

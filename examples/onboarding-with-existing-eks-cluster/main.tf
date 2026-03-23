@@ -13,6 +13,7 @@ module "castai_omni_cluster" {
 
   k8s_provider    = "eks"
   api_url         = var.castai_api_url
+  kvisor_grpc_url = var.kvisor_grpc_url
   api_token       = var.castai_api_token
   organization_id = var.organization_id
   cluster_id      = var.cluster_id

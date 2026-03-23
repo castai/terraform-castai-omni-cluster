@@ -13,6 +13,12 @@ variable "api_url" {
   default     = "https://api.cast.ai"
 }
 
+variable "kvisor_grpc_url" {
+  description = "Kvisor gRPC URL"
+  type        = string
+  default     = "kvisor.prod-master.cast.ai:443"
+}
+
 variable "api_token" {
   description = "CAST AI API token (key) for authentication"
   type        = string
@@ -58,7 +64,19 @@ variable "reserved_subnet_cidrs" {
 variable "omni_agent_chart_version" {
   description = "OMNI agent helm chart version"
   type        = string
-  default     = "1.7.0"
+  default     = "1.10.0"
+}
+
+variable "storage_provider" {
+  description = "Storage provider (storageclass) for the edge clusters. If empty, they will be defaulted to `premium-rwo` for GKE and `gp3` for EKS"
+  type        = string
+  default     = null
+}
+
+variable "loadbalancer_provider" {
+  description = "LoadBalancer provider for edge cluster. This setting is used only for EKS clusters (accepted values are `nlb` and `external`). If empty, it will be defaulted to `external` for EKS"
+  type        = string
+  default     = null
 }
 
 variable "skip_helm" {
