@@ -120,6 +120,11 @@ resource "castai_omni_cluster" "this" {
   cluster_id      = var.cluster_id
   organization_id = var.organization_id
 
+  status = {
+    omni_agent_version = var.omni_agent_chart_version
+    pod_cidr           = var.pod_cidr
+  }
+
   depends_on = [helm_release.omni_agent]
 }
 

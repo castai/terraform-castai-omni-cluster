@@ -10,3 +10,6 @@ examples/**/**/tf.vars
 
 # AI
 CLAUDE.md
+
+# Local dev
+dev.tfrc
