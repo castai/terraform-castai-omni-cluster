@@ -25,7 +25,7 @@ locals {
         fabric = {
           config = {
             fullMasquerade                 = true
-            routeConfigurationRulePriority = 100
+            routeConfigurationRulePriority = 400
           }
         }
       }
