@@ -6,3 +6,5 @@ castai_grpc_url  = "grpc.cast.ai:443"
 kvisor_grpc_url  = "kvisor.prod-master.cast.ai:443"
 castai_api_token = "<placeholder>"
 organization_id  = "<placeholder>"
+
+edge_location_name = "<placeholder>"

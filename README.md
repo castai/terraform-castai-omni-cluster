@@ -23,7 +23,7 @@ This Terraform module enables CAST AI Omni functionality for a Kubernetes cluste
 - CAST AI API credentials
 - `kubectl` configured with access to your Kubernetes cluster
 - Terraform >= 1.10
-- CAST AI Terraform provider >= 8.27.0
+- CAST AI Terraform provider >= 8.31.3
 - Helm provider >= 3.1.1
 - Kubernetes provider >= 2.35.0
 - Null provider >= 3.2.4
@@ -226,7 +226,7 @@ terraform {
   required_providers {
     castai = {
       source  = "castai/castai"
-      version = ">= 8.27.0"
+      version = ">= 8.31.3"
     }
     google = {
       source  = "hashicorp/google"
@@ -276,7 +276,7 @@ terraform {
   required_providers {
     castai = {
       source  = "castai/castai"
-      version = ">= 8.27.0"
+      version = ">= 8.31.3"
     }
     aws = {
       source  = "hashicorp/aws"
@@ -348,7 +348,7 @@ terraform {
   required_providers {
     castai = {
       source  = "castai/castai"
-      version = ">= 8.27.0"
+      version = ">= 8.31.3"
     }
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -509,7 +509,7 @@ MIT
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.10 |
-| <a name="requirement_castai"></a> [castai](#requirement\_castai) | >= 8.27.0 |
+| <a name="requirement_castai"></a> [castai](#requirement\_castai) | >= 8.31.3 |
 | <a name="requirement_external"></a> [external](#requirement\_external) | >= 2.3.5 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | >= 3.1.1 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | >= 2.35.0 |
@@ -519,7 +519,7 @@ MIT
 
 | Name | Version |
 |------|---------|
-| <a name="provider_castai"></a> [castai](#provider\_castai) | 8.31.0 |
+| <a name="provider_castai"></a> [castai](#provider\_castai) | 8.31.3 |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.1.0 |
 

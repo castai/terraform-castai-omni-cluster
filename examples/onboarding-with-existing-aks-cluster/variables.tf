@@ -51,3 +51,9 @@ variable "skip_helm" {
   type        = bool
   default     = false
 }
+
+variable "edge_location_name" {
+  description = "Name for the edge location. If not provided, will be auto-generated"
+  type        = string
+  default     = null
+}
