@@ -46,7 +46,7 @@ module "castai_eks_cluster" {
   aws_cluster_region = var.cluster_region
   aws_cluster_name   = module.eks.cluster_name
 
-  aws_assume_role_arn        = module.castai_eks_role_iam.role_arn
+  aws_assume_role_arn = module.castai_eks_role_iam.role_arn
 
   default_node_configuration = module.castai_eks_cluster.castai_node_configurations["default"]
 
@@ -82,12 +82,15 @@ module "castai_omni_cluster" {
   api_server_address = module.eks.cluster_endpoint
   service_cidr       = module.eks.cluster_service_cidr
 
+  storage_provider      = var.storage_provider
+  loadbalancer_provider = var.loadbalancer_provider
+
   skip_helm = var.skip_helm
 }
 
 module "castai_omni_edge_location_aws" {
   source  = "castai/omni-edge-location-aws/castai"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
   providers = {
     aws = aws.eu_west_1
@@ -97,6 +100,7 @@ module "castai_omni_edge_location_aws" {
   organization_id = module.castai_omni_cluster.organization_id
   region          = "eu-west-1"
   zones           = ["eu-west-1a", "eu-west-1b"]
+  name            = var.edge_location_name
 
   tags = {
     ManagedBy = "terraform"
