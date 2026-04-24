@@ -1,7 +1,7 @@
 check "reserved_cidrs_required_for_gke" {
   assert {
     condition     = var.k8s_provider != "gke" || (var.reserved_subnet_cidrs != null && length(var.reserved_subnet_cidrs) > 0)
-    error_message = "'reserved_subnet_cidrs' must be provided for GKE cluster"
+    error_message = "'reserved_subnet_cidrs' must be provided for GKE cluster. You should set at least the node subnet CIDR used by GKE"
   }
 }
 

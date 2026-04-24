@@ -1,5 +1,8 @@
 locals {
-  pools_cidrs = ["10.0.0.0/8", "192.168.0.0/16", "172.16.0.0/12", var.service_cidr]
+  pools_cidrs = concat(
+    ["10.0.0.0/8", "192.168.0.0/16", "172.16.0.0/12"],
+    var.service_cidr == "34.118.224.0/20" ? ["34.118.224.0/20"] : [],
+  )
 
   liqo_yaml_values = {
     liqo = {
