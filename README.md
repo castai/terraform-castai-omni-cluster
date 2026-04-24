@@ -558,7 +558,7 @@ MIT
 | <a name="input_omni_agent_chart_version"></a> [omni\_agent\_chart\_version](#input\_omni\_agent\_chart\_version) | OMNI agent helm chart version | `string` | `"1.11.2"` | no |
 | <a name="input_organization_id"></a> [organization\_id](#input\_organization\_id) | CAST AI organization ID | `string` | n/a | yes |
 | <a name="input_pod_cidr"></a> [pod\_cidr](#input\_pod\_cidr) | Pod CIDR for network configuration | `string` | n/a | yes |
-| <a name="input_reserved_subnet_cidrs"></a> [reserved\_subnet\_cidrs](#input\_reserved\_subnet\_cidrs) | List of reserved subnet CIDR's (relevant for GKE) | `list(string)` | `[]` | no |
+| <a name="input_reserved_subnet_cidrs"></a> [reserved\_subnet\_cidrs](#input\_reserved\_subnet\_cidrs) | List of reserved subnet CIDRs. On GKE and AKS (Azure CNI Overlay or Kubenet CNI) you should at least include the node subnet CIDR used by the cluster | `list(string)` | `[]` | no |
 | <a name="input_service_cidr"></a> [service\_cidr](#input\_service\_cidr) | Service CIDR for network configuration | `string` | n/a | yes |
 | <a name="input_skip_helm"></a> [skip\_helm](#input\_skip\_helm) | Skip installing any helm release; allows managing helm releases using GitOps | `bool` | `false` | no |
 | <a name="input_storage_provider"></a> [storage\_provider](#input\_storage\_provider) | Storage provider (storageclass) for the edge clusters. If empty, they will be defaulted to `premium-rwo` for GKE and `gp3` for EKS | `string` | `null` | no |

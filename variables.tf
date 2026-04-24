@@ -56,7 +56,7 @@ variable "service_cidr" {
 }
 
 variable "reserved_subnet_cidrs" {
-  description = "List of reserved subnet CIDR's (relevant for GKE)"
+  description = "List of reserved subnet CIDRs. On GKE and AKS (Azure CNI Overlay or Kubenet CNI) you should at least include the node subnet CIDR used by the cluster"
   type        = list(string)
   default     = []
 }
