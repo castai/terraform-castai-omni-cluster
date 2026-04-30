@@ -555,7 +555,7 @@ MIT
 | <a name="input_k8s_provider"></a> [k8s\_provider](#input\_k8s\_provider) | Kubernetes cloud provider (gke, eks, aks) | `string` | n/a | yes |
 | <a name="input_kvisor_grpc_url"></a> [kvisor\_grpc\_url](#input\_kvisor\_grpc\_url) | Kvisor gRPC URL | `string` | `"kvisor.prod-master.cast.ai:443"` | no |
 | <a name="input_loadbalancer_provider"></a> [loadbalancer\_provider](#input\_loadbalancer\_provider) | LoadBalancer provider for edge cluster. This setting is used only for EKS clusters (accepted values are `nlb` and `external`). If empty, it will be defaulted to `external` for EKS | `string` | `null` | no |
-| <a name="input_omni_agent_chart_version"></a> [omni\_agent\_chart\_version](#input\_omni\_agent\_chart\_version) | OMNI agent helm chart version | `string` | `"1.12.4"` | no |
+| <a name="input_omni_agent_chart_version"></a> [omni\_agent\_chart\_version](#input\_omni\_agent\_chart\_version) | OMNI agent helm chart version | `string` | `"1.12.5"` | no |
 | <a name="input_organization_id"></a> [organization\_id](#input\_organization\_id) | CAST AI organization ID | `string` | n/a | yes |
 | <a name="input_pod_cidr"></a> [pod\_cidr](#input\_pod\_cidr) | Pod CIDR for network configuration | `string` | n/a | yes |
 | <a name="input_reserved_subnet_cidrs"></a> [reserved\_subnet\_cidrs](#input\_reserved\_subnet\_cidrs) | List of reserved subnet CIDRs. On GKE and AKS (Azure CNI Overlay or Kubenet CNI) you should at least include the node subnet CIDR used by the cluster | `list(string)` | `[]` | no |
