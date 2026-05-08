@@ -30,11 +30,11 @@ module "eks_vpc" {
   }
 }
 
-module "hf_backbone_vpc" {
+module "peered_vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.0.0"
 
-  name = "${var.cluster_name}-hf-backbone"
+  name = "${var.cluster_name}-peered-vpc"
   cidr = "10.1.0.0/16"
 
   azs             = data.aws_availability_zones.available.names
@@ -48,7 +48,7 @@ module "hf_backbone_vpc" {
 
 # VPC peering: peered VPC -> EKS VPC
 resource "aws_vpc_peering_connection" "peered_to_eks" {
-  vpc_id      = module.hf_backbone_vpc.vpc_id
+  vpc_id      = module.peered_vpc.vpc_id
   peer_vpc_id = module.eks_vpc.vpc_id
   auto_accept = true
 }
@@ -57,28 +57,28 @@ resource "aws_vpc_peering_connection" "peered_to_eks" {
 resource "aws_route" "eks_private_to_peered" {
   count                     = length(module.eks_vpc.private_route_table_ids)
   route_table_id            = module.eks_vpc.private_route_table_ids[count.index]
-  destination_cidr_block    = module.hf_backbone_vpc.vpc_cidr_block
+  destination_cidr_block    = module.peered_vpc.vpc_cidr_block
   vpc_peering_connection_id = aws_vpc_peering_connection.peered_to_eks.id
 }
 
 resource "aws_route" "eks_public_to_peered" {
   count                     = length(module.eks_vpc.public_route_table_ids)
   route_table_id            = module.eks_vpc.public_route_table_ids[count.index]
-  destination_cidr_block    = module.hf_backbone_vpc.vpc_cidr_block
+  destination_cidr_block    = module.peered_vpc.vpc_cidr_block
   vpc_peering_connection_id = aws_vpc_peering_connection.peered_to_eks.id
 }
 
 # Routes in peered VPC route tables -> EKS VPC
 resource "aws_route" "peered_private_to_eks" {
-  count                     = length(module.hf_backbone_vpc.private_route_table_ids)
-  route_table_id            = module.hf_backbone_vpc.private_route_table_ids[count.index]
+  count                     = length(module.peered_vpc.private_route_table_ids)
+  route_table_id            = module.peered_vpc.private_route_table_ids[count.index]
   destination_cidr_block    = module.eks_vpc.vpc_cidr_block
   vpc_peering_connection_id = aws_vpc_peering_connection.peered_to_eks.id
 }
 
 resource "aws_route" "peered_public_to_eks" {
-  count                     = length(module.hf_backbone_vpc.public_route_table_ids)
-  route_table_id            = module.hf_backbone_vpc.public_route_table_ids[count.index]
+  count                     = length(module.peered_vpc.public_route_table_ids)
+  route_table_id            = module.peered_vpc.public_route_table_ids[count.index]
   destination_cidr_block    = module.eks_vpc.vpc_cidr_block
   vpc_peering_connection_id = aws_vpc_peering_connection.peered_to_eks.id
 }
