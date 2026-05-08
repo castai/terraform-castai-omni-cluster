@@ -73,6 +73,11 @@ variable "edge_location_name" {
   default     = null
 }
 
+variable "gcp_region" {
+  description = "GCP region where the Omni edge location is created."
+  type        = string
+}
+
 variable "google_project_id" {
   type = string
 }

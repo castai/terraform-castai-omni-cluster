@@ -94,7 +94,7 @@ module "castai_omni_edge_location_gcp" {
 
   cluster_id      = module.castai_omni_cluster.cluster_id
   organization_id = module.castai_omni_cluster.organization_id
-  region          = "europe-west4"
+  region          = var.gcp_region
   name            = var.edge_location_name
 }
 
