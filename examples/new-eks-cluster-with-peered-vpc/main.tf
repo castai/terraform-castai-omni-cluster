@@ -63,7 +63,12 @@ module "castai_eks_cluster" {
     }
   }
 
-  depends_on = [module.castai_eks_role_iam]
+  depends_on = [
+    module.castai_eks_role_iam,
+    aws_eks_access_entry.castai,
+    kubernetes_storage_class_v1.gp3,
+    helm_release.aws_load_balancer_controller,
+  ]
 }
 
 module "castai_omni_cluster" {
@@ -86,6 +91,12 @@ module "castai_omni_cluster" {
   loadbalancer_provider = var.loadbalancer_provider
 
   skip_helm = var.skip_helm
+
+  depends_on = [
+    module.castai_eks_cluster,
+    kubernetes_storage_class_v1.gp3,
+    helm_release.aws_load_balancer_controller,
+  ]
 }
 
 module "castai_omni_edge_location_gcp" {
