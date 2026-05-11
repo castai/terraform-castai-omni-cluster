@@ -44,10 +44,12 @@ module "castai_omni_cluster" {
 
 module "castai_omni_edge_location_gcp" {
   source  = "castai/omni-edge-location-gcp/castai"
-  version = "~> 2.0"
+  version = "~> 2.1"
 
   cluster_id      = module.castai_omni_cluster.cluster_id
   organization_id = module.castai_omni_cluster.organization_id
   region          = "europe-west4"
   name            = var.edge_location_name
+
+  depends_on = [module.castai_omni_cluster]
 }
