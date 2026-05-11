@@ -90,7 +90,7 @@ module "castai_omni_cluster" {
 
 module "castai_omni_edge_location_aws" {
   source  = "castai/omni-edge-location-aws/castai"
-  version = "~> 2.0"
+  version = "~> 2.1"
 
   providers = {
     aws = aws.eu_west_1
@@ -105,4 +105,6 @@ module "castai_omni_edge_location_aws" {
   tags = {
     ManagedBy = "terraform"
   }
+
+  depends_on = [module.castai_omni_cluster]
 }
