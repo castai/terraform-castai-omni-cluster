@@ -67,8 +67,26 @@ variable "tags" {
   default     = {}
 }
 
-variable "edge_location_name" {
-  description = "Name for the edge location. If not provided, will be auto-generated"
+variable "image_registry_tls_cert" {
+  description = "PEM-encoded Let's Encrypt fullchain certificate for the ECR proxy domain."
+  type        = string
+  sensitive   = true
+}
+
+variable "image_registry_tls_key" {
+  description = "PEM-encoded Let's Encrypt private key for the ECR proxy domain."
+  type        = string
+  sensitive   = true
+}
+
+variable "aws_edge_location_name" {
+  description = "Name for the AWS edge location. If not provided, will be auto-generated"
+  type        = string
+  default     = null
+}
+
+variable "gcp_edge_location_name" {
+  description = "Name for the GCP edge location. If not provided, will be auto-generated"
   type        = string
   default     = null
 }
