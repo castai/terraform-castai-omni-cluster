@@ -46,6 +46,49 @@ module "peered_vpc" {
   one_nat_gateway_per_az = false
 }
 
+# =============================================================================
+# SSM VPC endpoints for peered VPC (no public internet path for SSM agent)
+# =============================================================================
+
+resource "aws_security_group" "ssm_endpoints" {
+  name_prefix = "${var.cluster_name}-ssm-endpoints"
+  vpc_id      = module.peered_vpc.vpc_id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [module.peered_vpc.vpc_cidr_block]
+  }
+}
+
+resource "aws_vpc_endpoint" "ssm" {
+  vpc_id              = module.peered_vpc.vpc_id
+  service_name        = "com.amazonaws.${var.cluster_region}.ssm"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.peered_vpc.private_subnets
+  security_group_ids  = [aws_security_group.ssm_endpoints.id]
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "ssmmessages" {
+  vpc_id              = module.peered_vpc.vpc_id
+  service_name        = "com.amazonaws.${var.cluster_region}.ssmmessages"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.peered_vpc.private_subnets
+  security_group_ids  = [aws_security_group.ssm_endpoints.id]
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "ec2messages" {
+  vpc_id              = module.peered_vpc.vpc_id
+  service_name        = "com.amazonaws.${var.cluster_region}.ec2messages"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.peered_vpc.private_subnets
+  security_group_ids  = [aws_security_group.ssm_endpoints.id]
+  private_dns_enabled = true
+}
+
 # VPC peering: peered VPC -> EKS VPC
 resource "aws_vpc_peering_connection" "peered_to_eks" {
   vpc_id      = module.peered_vpc.vpc_id

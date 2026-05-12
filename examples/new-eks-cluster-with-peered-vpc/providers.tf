@@ -39,8 +39,8 @@ terraform {
 }
 
 provider "aws" {
-  alias  = "eu_west_1"
-  region = "eu-west-1"
+  alias  = "eu_south_2"
+  region = "eu-south-2"
 }
 
 provider "aws" {
