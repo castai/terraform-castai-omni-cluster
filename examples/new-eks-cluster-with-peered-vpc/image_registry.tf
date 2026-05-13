@@ -1,3 +1,115 @@
+module "registry_vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.0.0"
+
+  name = "${var.cluster_name}-registry-vpc"
+  cidr = "10.4.0.0/16"
+
+  azs             = data.aws_availability_zones.available.names
+  private_subnets = ["10.4.1.0/24", "10.4.2.0/24", "10.4.3.0/24"]
+  public_subnets  = ["10.4.4.0/24", "10.4.5.0/24", "10.4.6.0/24"]
+
+  enable_nat_gateway     = true
+  single_nat_gateway     = true
+  one_nat_gateway_per_az = false
+}
+
+# =============================================================================
+# SSM VPC endpoints for registry VPC (no public internet path for SSM agent)
+# =============================================================================
+
+resource "aws_security_group" "ssm_endpoints" {
+  name_prefix = "${var.cluster_name}-ssm-endpoints"
+  vpc_id      = module.registry_vpc.vpc_id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [module.registry_vpc.vpc_cidr_block]
+  }
+}
+
+resource "aws_vpc_endpoint" "ssm" {
+  vpc_id              = module.registry_vpc.vpc_id
+  service_name        = "com.amazonaws.${var.cluster_region}.ssm"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.registry_vpc.private_subnets
+  security_group_ids  = [aws_security_group.ssm_endpoints.id]
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "ssmmessages" {
+  vpc_id              = module.registry_vpc.vpc_id
+  service_name        = "com.amazonaws.${var.cluster_region}.ssmmessages"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.registry_vpc.private_subnets
+  security_group_ids  = [aws_security_group.ssm_endpoints.id]
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "ec2messages" {
+  vpc_id              = module.registry_vpc.vpc_id
+  service_name        = "com.amazonaws.${var.cluster_region}.ec2messages"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.registry_vpc.private_subnets
+  security_group_ids  = [aws_security_group.ssm_endpoints.id]
+  private_dns_enabled = true
+}
+
+# =============================================================================
+# VPC peering: registry VPC <-> EKS VPC
+# =============================================================================
+
+resource "aws_vpc_peering_connection" "registry_to_eks" {
+  vpc_id      = module.registry_vpc.vpc_id
+  peer_vpc_id = module.eks_vpc.vpc_id
+  auto_accept = true
+}
+
+resource "aws_route" "eks_private_to_registry" {
+  count                     = length(module.eks_vpc.private_route_table_ids)
+  route_table_id            = module.eks_vpc.private_route_table_ids[count.index]
+  destination_cidr_block    = module.registry_vpc.vpc_cidr_block
+  vpc_peering_connection_id = aws_vpc_peering_connection.registry_to_eks.id
+}
+
+resource "aws_route" "eks_public_to_registry" {
+  count                     = length(module.eks_vpc.public_route_table_ids)
+  route_table_id            = module.eks_vpc.public_route_table_ids[count.index]
+  destination_cidr_block    = module.registry_vpc.vpc_cidr_block
+  vpc_peering_connection_id = aws_vpc_peering_connection.registry_to_eks.id
+}
+
+resource "aws_route" "registry_private_to_eks" {
+  count                     = length(module.registry_vpc.private_route_table_ids)
+  route_table_id            = module.registry_vpc.private_route_table_ids[count.index]
+  destination_cidr_block    = module.eks_vpc.vpc_cidr_block
+  vpc_peering_connection_id = aws_vpc_peering_connection.registry_to_eks.id
+}
+
+resource "aws_route" "registry_public_to_eks" {
+  count                     = length(module.registry_vpc.public_route_table_ids)
+  route_table_id            = module.registry_vpc.public_route_table_ids[count.index]
+  destination_cidr_block    = module.eks_vpc.vpc_cidr_block
+  vpc_peering_connection_id = aws_vpc_peering_connection.registry_to_eks.id
+}
+
+# EKS node security group rules for registry VPC traffic
+resource "aws_vpc_security_group_ingress_rule" "node_from_registry_vpc" {
+  security_group_id = module.eks.node_security_group_id
+  cidr_ipv4         = module.registry_vpc.vpc_cidr_block
+  ip_protocol       = "-1"
+  description       = "Allow all traffic from registry VPC to EKS nodes"
+}
+
+resource "aws_vpc_security_group_egress_rule" "node_to_registry_vpc" {
+  security_group_id = module.eks.node_security_group_id
+  cidr_ipv4         = module.registry_vpc.vpc_cidr_block
+  ip_protocol       = "-1"
+  description       = "Allow all traffic from EKS nodes to registry VPC"
+}
+
 # =============================================================================
 # Latest Amazon Linux 2023 AMI
 # =============================================================================
@@ -44,7 +156,7 @@ resource "aws_iam_instance_profile" "image_registry" {
 }
 
 # =============================================================================
-# Security group — EKS VPC, accepts HTTPS from within the VPC only
+# Security group — registry VPC, accepts HTTPS from EKS VPC only
 # =============================================================================
 
 resource "aws_security_group" "image_registry" {
