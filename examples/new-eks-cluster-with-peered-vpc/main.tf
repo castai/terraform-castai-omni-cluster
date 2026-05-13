@@ -103,116 +103,6 @@ locals {
   edge_location_zones = ["eu-south-2a", "eu-south-2b", "eu-south-2c"]
 }
 
-resource "aws_vpc" "edge_location" {
-  provider             = aws.eu_south_2
-  cidr_block           = "10.2.0.0/16"
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "${var.cluster_name}-edge-eu-south-2"
-  }
-}
-
-# Private subnets for edge location VMs (10.2.0.x–10.2.2.x)
-resource "aws_subnet" "edge_location" {
-  provider          = aws.eu_south_2
-  count             = length(local.edge_location_zones)
-  vpc_id            = aws_vpc.edge_location.id
-  cidr_block        = cidrsubnet("10.2.0.0/16", 8, count.index)
-  availability_zone = local.edge_location_zones[count.index]
-
-  tags = {
-    Name = "${var.cluster_name}-edge-eu-south-2-${count.index}"
-  }
-}
-
-# Public subnet for NAT gateway (10.2.100.0/24)
-resource "aws_subnet" "edge_location_public" {
-  provider                = aws.eu_south_2
-  vpc_id                  = aws_vpc.edge_location.id
-  cidr_block              = "10.2.100.0/24"
-  availability_zone       = local.edge_location_zones[0]
-  map_public_ip_on_launch = true
-
-  tags = {
-    Name = "${var.cluster_name}-edge-eu-south-2-public"
-  }
-}
-
-resource "aws_internet_gateway" "edge_location" {
-  provider = aws.eu_south_2
-  vpc_id   = aws_vpc.edge_location.id
-
-  tags = {
-    Name = "${var.cluster_name}-edge-eu-south-2"
-  }
-}
-
-resource "aws_eip" "edge_location_nat" {
-  provider = aws.eu_south_2
-  domain   = "vpc"
-
-  tags = {
-    Name = "${var.cluster_name}-edge-eu-south-2-nat"
-  }
-}
-
-resource "aws_nat_gateway" "edge_location" {
-  provider      = aws.eu_south_2
-  allocation_id = aws_eip.edge_location_nat.id
-  subnet_id     = aws_subnet.edge_location_public.id
-
-  tags = {
-    Name = "${var.cluster_name}-edge-eu-south-2"
-  }
-
-  depends_on = [aws_internet_gateway.edge_location]
-}
-
-# Public route table: IGW for outbound internet
-resource "aws_route_table" "edge_location_public" {
-  provider = aws.eu_south_2
-  vpc_id   = aws_vpc.edge_location.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.edge_location.id
-  }
-
-  tags = {
-    Name = "${var.cluster_name}-edge-eu-south-2-public"
-  }
-}
-
-resource "aws_route_table_association" "edge_location_public" {
-  provider       = aws.eu_south_2
-  subnet_id      = aws_subnet.edge_location_public.id
-  route_table_id = aws_route_table.edge_location_public.id
-}
-
-# Private route table: NAT gateway for outbound internet
-resource "aws_route_table" "edge_location" {
-  provider = aws.eu_south_2
-  vpc_id   = aws_vpc.edge_location.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.edge_location.id
-  }
-
-  tags = {
-    Name = "${var.cluster_name}-edge-eu-south-2"
-  }
-}
-
-resource "aws_route_table_association" "edge_location" {
-  provider       = aws.eu_south_2
-  count          = length(aws_subnet.edge_location)
-  subnet_id      = aws_subnet.edge_location[count.index].id
-  route_table_id = aws_route_table.edge_location.id
-}
-
 module "castai_omni_edge_location_aws" {
   source  = "castai/omni-edge-location-aws/castai"
   version = "~> 2.1"
@@ -226,8 +116,7 @@ module "castai_omni_edge_location_aws" {
   region          = "eu-south-2"
   zones           = local.edge_location_zones
   name            = var.aws_edge_location_name
-  vpc_id          = aws_vpc.edge_location.id
-  subnet_ids      = aws_subnet.edge_location[*].id
+  vpc_cidr        = "10.2.0.0/16"
   networking      = {
     tunneled_cidrs = []
   }
