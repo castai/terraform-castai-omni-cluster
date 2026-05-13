@@ -49,7 +49,7 @@ resource "aws_iam_instance_profile" "image_registry" {
 
 resource "aws_security_group" "image_registry" {
   name_prefix = "${var.cluster_name}-image-registry"
-  vpc_id      = module.peered_vpc.vpc_id
+  vpc_id      = module.registry_vpc.vpc_id
 
   ingress {
     from_port   = 443
@@ -78,7 +78,7 @@ resource "aws_security_group" "image_registry" {
 # =============================================================================
 
 resource "aws_ebs_volume" "image_registry" {
-  availability_zone = module.peered_vpc.azs[0]
+  availability_zone = module.registry_vpc.azs[0]
   size              = 50
   type              = "gp3"
 
@@ -96,8 +96,8 @@ resource "aws_volume_attachment" "image_registry" {
 resource "aws_instance" "image_registry" {
   ami                    = data.aws_ami.al2023.id
   instance_type          = "t3.small"
-  subnet_id              = module.peered_vpc.private_subnets[0]
-  private_ip             = "10.1.1.253"
+  subnet_id              = module.registry_vpc.private_subnets[0]
+  private_ip             = "10.4.1.253"
   iam_instance_profile   = aws_iam_instance_profile.image_registry.name
   vpc_security_group_ids = [aws_security_group.image_registry.id]
 

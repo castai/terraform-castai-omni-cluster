@@ -121,11 +121,18 @@ resource "aws_security_group" "additional" {
   }
 }
 
-resource "aws_vpc_security_group_egress_rule" "node_to_peered_vpc" {
+resource "aws_vpc_security_group_ingress_rule" "node_from_registry_vpc" {
   security_group_id = module.eks.node_security_group_id
-  cidr_ipv4         = module.peered_vpc.vpc_cidr_block
+  cidr_ipv4         = module.registry_vpc.vpc_cidr_block
   ip_protocol       = "-1"
-  description       = "Allow all traffic from EKS nodes to peered VPC"
+  description       = "Allow all traffic from registry VPC to EKS nodes"
+}
+
+resource "aws_vpc_security_group_egress_rule" "node_to_registry_vpc" {
+  security_group_id = module.eks.node_security_group_id
+  cidr_ipv4         = module.registry_vpc.vpc_cidr_block
+  ip_protocol       = "-1"
+  description       = "Allow all traffic from EKS nodes to registry VPC"
 }
 
 resource "aws_vpc_security_group_ingress_rule" "node_from_edge_location" {
