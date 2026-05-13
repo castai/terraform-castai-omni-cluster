@@ -118,7 +118,7 @@ module "castai_omni_edge_location_aws" {
   name            = var.aws_edge_location_name
   vpc_cidr        = "10.2.0.0/16"
   networking      = {
-    tunneled_cidrs = []
+    tunneled_cidrs = ["10.4.0.0/16"]
   }
 
   tags = {
@@ -135,7 +135,7 @@ module "castai_omni_edge_location_gcp" {
   region          = var.gcp_region
   name            = var.gcp_edge_location_name
   networking      = {
-    tunneled_cidrs = []
+    tunneled_cidrs = ["10.4.0.0/16"]
   }
 }
 
