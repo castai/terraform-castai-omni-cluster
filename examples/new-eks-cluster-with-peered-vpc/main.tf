@@ -1,161 +1,167 @@
-# Configure Data sources and providers required for CAST AI connection.
-data "aws_caller_identity" "current" {}
+data "aws_availability_zones" "available" {}
 
-# Configure EKS cluster connection using CAST AI eks-cluster module.
-resource "castai_eks_clusterid" "cluster_id" {
-  account_id   = data.aws_caller_identity.current.account_id
-  region       = var.cluster_region
-  cluster_name = var.cluster_name
+module "eks_vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.0.0"
+
+  name = var.cluster_name
+  cidr = "10.0.0.0/16"
+
+  azs             = data.aws_availability_zones.available.names
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  public_subnets  = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+
+  enable_nat_gateway     = true
+  single_nat_gateway     = true
+  one_nat_gateway_per_az = false
+
+  tags = {
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+  }
+
+  public_subnet_tags = {
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    "kubernetes.io/role/elb"                    = 1
+  }
+
+  private_subnet_tags = {
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    "kubernetes.io/role/internal-elb"           = 1
+  }
 }
 
-resource "castai_eks_user_arn" "castai_user_arn" {
-  cluster_id = castai_eks_clusterid.cluster_id.id
-}
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 21.0"
 
-# Create AWS IAM policies and a user to connect to CAST AI.
-module "castai_eks_role_iam" {
-  source  = "castai/eks-role-iam/castai"
-  version = "~> 2.0"
+  name                   = var.cluster_name
+  kubernetes_version     = var.kubernetes_version
+  endpoint_public_access = true
 
-  aws_account_id     = data.aws_caller_identity.current.account_id
-  aws_cluster_region = var.cluster_region
-  aws_cluster_name   = var.cluster_name
-  aws_cluster_vpc_id = module.eks_vpc.vpc_id
-
-  castai_user_arn = castai_eks_user_arn.castai_user_arn.arn
-
-  create_iam_resources_per_cluster = true
-}
-
-# CAST AI access entry for nodes to join the cluster.
-resource "aws_eks_access_entry" "castai" {
-  cluster_name  = module.eks.cluster_name
-  principal_arn = module.castai_eks_role_iam.instance_profile_role_arn
-  type          = "EC2_LINUX"
-}
-
-module "castai_eks_cluster" {
-  source                 = "castai/eks-cluster/castai"
-  version                = "~> 14.1"
-  api_url                = var.castai_api_url
-  castai_api_token       = var.castai_api_token
-  grpc_url               = var.castai_grpc_url
-  wait_for_cluster_ready = true
-
-  aws_account_id     = data.aws_caller_identity.current.account_id
-  aws_cluster_region = var.cluster_region
-  aws_cluster_name   = module.eks.cluster_name
-
-  aws_assume_role_arn = module.castai_eks_role_iam.role_arn
-
-  default_node_configuration = module.castai_eks_cluster.castai_node_configurations["default"]
-
-  node_configurations = {
-    default = {
-      subnets = module.eks_vpc.private_subnets
-      tags    = var.tags
-      security_groups = [
-        module.eks.cluster_security_group_id,
-        module.eks.node_security_group_id,
-        aws_security_group.additional.id,
-      ]
-      instance_profile_arn = module.castai_eks_role_iam.instance_profile_arn
+  addons = {
+    coredns = {
+      most_recent = true
+    }
+    kube-proxy = {
+      most_recent = true
+    }
+    vpc-cni = {
+      most_recent    = true
+      before_compute = true
+    }
+    aws-ebs-csi-driver = {
+      most_recent              = true
+      service_account_role_arn = aws_iam_role.ebs_csi.arn
     }
   }
 
-  depends_on = [
-    module.castai_eks_role_iam,
-    aws_eks_access_entry.castai,
-    kubernetes_storage_class_v1.gp3,
-    helm_release.aws_load_balancer_controller,
-  ]
-}
+  vpc_id     = module.eks_vpc.vpc_id
+  subnet_ids = module.eks_vpc.private_subnets
 
-module "castai_omni_cluster" {
-  source = "../.."
+  enable_cluster_creator_admin_permissions = true
 
-  k8s_provider    = "eks"
-  api_url         = var.castai_api_url
-  kvisor_grpc_url = var.kvisor_grpc_url
-  api_token       = var.castai_api_token
-  organization_id = var.organization_id
-  cluster_id      = castai_eks_clusterid.cluster_id.id
-  cluster_name    = var.cluster_name
-  cluster_region  = var.cluster_region
+  self_managed_node_groups = {
+    node_group_1 = {
+      name          = "${var.cluster_name}-ng-1"
+      instance_type = "m5.large"
+      max_size      = 5
+      min_size      = 2
+      desired_size  = 2
 
-  pod_cidr           = module.eks_vpc.vpc_cidr_block
-  api_server_address = module.eks.cluster_endpoint
-  service_cidr       = module.eks.cluster_service_cidr
-
-  storage_provider      = var.storage_provider
-  loadbalancer_provider = var.loadbalancer_provider
-
-  skip_helm = var.skip_helm
-
-  depends_on = [
-    module.castai_eks_cluster,
-    kubernetes_storage_class_v1.gp3,
-    helm_release.aws_load_balancer_controller,
-  ]
-}
-
-locals {
-  edge_location_zones = ["eu-south-2a", "eu-south-2b", "eu-south-2c"]
-}
-
-module "castai_omni_edge_location_aws" {
-  source  = "castai/omni-edge-location-aws/castai"
-  version = "~> 2.1"
-
-  providers = {
-    aws = aws.eu_south_2
-  }
-
-  cluster_id      = module.castai_omni_cluster.cluster_id
-  organization_id = module.castai_omni_cluster.organization_id
-  region          = "eu-south-2"
-  zones           = local.edge_location_zones
-  name            = var.aws_edge_location_name
-  vpc_cidr        = "10.2.0.0/16"
-  networking      = {
-    tunneled_cidrs = ["10.4.0.0/16"]
-  }
-
-  tags = {
-    ManagedBy = "terraform"
+      metadata_options = {
+        http_endpoint               = "enabled"
+        http_tokens                 = "required"
+        http_put_response_hop_limit = 2
+      }
+    }
   }
 }
 
-module "castai_omni_edge_location_gcp" {
-  source  = "castai/omni-edge-location-gcp/castai"
-  version = "~> 2.1"
+data "aws_iam_policy_document" "ebs_csi_assume_role" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
 
-  cluster_id      = module.castai_omni_cluster.cluster_id
-  organization_id = module.castai_omni_cluster.organization_id
-  region          = var.gcp_region
-  name            = var.gcp_edge_location_name
-  networking      = {
-    tunneled_cidrs = ["10.4.0.0/16"]
+    principals {
+      type        = "Federated"
+      identifiers = [module.eks.oidc_provider_arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${module.eks.oidc_provider}:sub"
+      values   = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${module.eks.oidc_provider}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
   }
 }
 
-# module "castai_oci_edge_location" {
-#   source  = "castai/omni-edge-location-oci/castai"
-#   version = "~> 2.0"
-#
-#   providers = {
-#     oci      = oci
-#     oci.home = oci.home
-#   }
-#
-#   cluster_id      = module.castai_omni_cluster.cluster_id
-#   organization_id = module.castai_omni_cluster.organization_id
-#
-#   region         = var.oci_region
-#   tenancy_id     = var.oci_tenancy_id
-#   compartment_id = var.oci_compartment_id
-#
-#   tags = {
-#     ManagedBy = "terraform"
-#   }
-# }
+resource "aws_iam_role" "ebs_csi" {
+  name               = "${var.cluster_name}-ebs-csi-driver"
+  assume_role_policy = data.aws_iam_policy_document.ebs_csi_assume_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "ebs_csi" {
+  role       = aws_iam_role.ebs_csi.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}
+
+resource "kubernetes_storage_class_v1" "gp3" {
+  metadata {
+    name = "gp3"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
+  }
+
+  storage_provisioner    = "ebs.csi.aws.com"
+  volume_binding_mode    = "WaitForFirstConsumer"
+  allow_volume_expansion = true
+
+  parameters = {
+    type      = "gp3"
+    encrypted = "true"
+  }
+
+  depends_on = [module.eks]
+}
+
+resource "aws_security_group" "additional" {
+  name_prefix = "${var.cluster_name}-additional"
+  vpc_id      = module.eks_vpc.vpc_id
+
+  ingress {
+    from_port = 22
+    to_port   = 22
+    protocol  = "tcp"
+    cidr_blocks = [
+      "10.0.0.0/8",
+    ]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "node_from_edge_location" {
+  security_group_id = module.eks.node_security_group_id
+  cidr_ipv4         = "10.2.0.0/16"
+  ip_protocol       = "-1"
+  description       = "Allow all traffic from edge location VPC"
+}
+
+resource "aws_vpc_security_group_egress_rule" "node_to_edge_location" {
+  security_group_id = module.eks.node_security_group_id
+  cidr_ipv4         = "10.2.0.0/16"
+  ip_protocol       = "-1"
+  description       = "Allow all traffic from EKS nodes to edge location VPC"
+}
