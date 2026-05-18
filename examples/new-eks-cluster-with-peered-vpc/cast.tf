@@ -135,23 +135,23 @@ module "castai_omni_edge_location_gcp" {
   }
 }
 
-# module "castai_oci_edge_location" {
-#   source  = "castai/omni-edge-location-oci/castai"
-#   version = "~> 2.0"
-#
-#   providers = {
-#     oci      = oci
-#     oci.home = oci.home
-#   }
-#
-#   cluster_id      = module.castai_omni_cluster.cluster_id
-#   organization_id = module.castai_omni_cluster.organization_id
-#
-#   region         = var.oci_region
-#   tenancy_id     = var.oci_tenancy_id
-#   compartment_id = var.oci_compartment_id
-#
-#   tags = {
-#     ManagedBy = "terraform"
-#   }
-# }
+module "castai_oci_edge_location" {
+  source  = "castai/omni-edge-location-oci/castai"
+  version = "~> 2.1"
+
+  providers = {
+    oci      = oci
+    oci.home = oci.home
+  }
+
+  cluster_id      = module.castai_omni_cluster.cluster_id
+  organization_id = module.castai_omni_cluster.organization_id
+
+  region         = var.oci_region
+  tenancy_id     = var.oci_tenancy_id
+  compartment_id = var.oci_compartment_id
+
+  tags = {
+    ManagedBy = "terraform"
+  }
+}
