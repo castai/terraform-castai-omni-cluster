@@ -15,6 +15,9 @@ module "liqo_helm_values_gke" {
   pod_cidr              = var.pod_cidr
   service_cidr          = var.service_cidr
   reserved_subnet_cidrs = var.reserved_subnet_cidrs
+  ipam_pools            = var.ipam_pools
+  ipam_external_cidr    = var.ipam_external_cidr
+  ipam_internal_cidr    = var.ipam_internal_cidr
 }
 
 # EKS-specific Liqo Helm chart configuration
@@ -27,6 +30,9 @@ module "liqo_helm_values_eks" {
   pod_cidr              = var.pod_cidr
   service_cidr          = var.service_cidr
   reserved_subnet_cidrs = var.reserved_subnet_cidrs
+  ipam_pools            = var.ipam_pools
+  ipam_external_cidr    = var.ipam_external_cidr
+  ipam_internal_cidr    = var.ipam_internal_cidr
 }
 
 # AKS-specific Liqo Helm chart configuration
@@ -39,6 +45,9 @@ module "liqo_helm_values_aks" {
   pod_cidr              = var.pod_cidr
   service_cidr          = var.service_cidr
   reserved_subnet_cidrs = var.reserved_subnet_cidrs
+  ipam_pools            = var.ipam_pools
+  ipam_external_cidr    = var.ipam_external_cidr
+  ipam_internal_cidr    = var.ipam_internal_cidr
 }
 
 locals {

@@ -519,8 +519,8 @@ MIT
 
 | Name | Version |
 |------|---------|
-| <a name="provider_castai"></a> [castai](#provider\_castai) | 8.34.0 |
-| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.1 |
+| <a name="provider_castai"></a> [castai](#provider\_castai) | 8.37.0 |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.2 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.1.0 |
 
 ## Modules
@@ -552,10 +552,13 @@ MIT
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | CAST AI cluster name | `string` | n/a | yes |
 | <a name="input_cluster_region"></a> [cluster\_region](#input\_cluster\_region) | Not used. This variable is kept for backwards compatibility, will be removed in the future. | `string` | `""` | no |
 | <a name="input_cluster_zone"></a> [cluster\_zone](#input\_cluster\_zone) | Not used. This variable is kept for backwards compatibility, will be removed in the future. | `string` | `""` | no |
+| <a name="input_ipam_external_cidr"></a> [ipam\_external\_cidr](#input\_ipam\_external\_cidr) | Override Liqo IPAM externalCIDR. If not set, it will be allocated automatically by Liqo | `string` | `null` | no |
+| <a name="input_ipam_internal_cidr"></a> [ipam\_internal\_cidr](#input\_ipam\_internal\_cidr) | Override Liqo IPAM internalCIDR. If not set, it will be allocated automatically by Liqo | `string` | `null` | no |
+| <a name="input_ipam_pools"></a> [ipam\_pools](#input\_ipam\_pools) | Override Liqo IPAM network pools. If not set, defaults to private address space (RFC 1918) | `list(string)` | `null` | no |
 | <a name="input_k8s_provider"></a> [k8s\_provider](#input\_k8s\_provider) | Kubernetes cloud provider (gke, eks, aks) | `string` | n/a | yes |
 | <a name="input_kvisor_grpc_url"></a> [kvisor\_grpc\_url](#input\_kvisor\_grpc\_url) | Kvisor gRPC URL | `string` | `"kvisor.prod-master.cast.ai:443"` | no |
 | <a name="input_loadbalancer_provider"></a> [loadbalancer\_provider](#input\_loadbalancer\_provider) | LoadBalancer provider for edge cluster. This setting is used only for EKS clusters (accepted values are `nlb` and `external`). If empty, it will be defaulted to `external` for EKS | `string` | `null` | no |
-| <a name="input_omni_agent_chart_version"></a> [omni\_agent\_chart\_version](#input\_omni\_agent\_chart\_version) | OMNI agent helm chart version | `string` | `"1.12.10"` | no |
+| <a name="input_omni_agent_chart_version"></a> [omni\_agent\_chart\_version](#input\_omni\_agent\_chart\_version) | OMNI agent helm chart version | `string` | `"1.12.13"` | no |
 | <a name="input_organization_id"></a> [organization\_id](#input\_organization\_id) | CAST AI organization ID | `string` | n/a | yes |
 | <a name="input_pod_cidr"></a> [pod\_cidr](#input\_pod\_cidr) | Pod CIDR for network configuration | `string` | n/a | yes |
 | <a name="input_reserved_subnet_cidrs"></a> [reserved\_subnet\_cidrs](#input\_reserved\_subnet\_cidrs) | List of reserved subnet CIDRs. On GKE and AKS (Azure CNI Overlay or Kubenet CNI) you should at least include the node subnet CIDR used by the cluster | `list(string)` | `[]` | no |

@@ -15,12 +15,16 @@ locals {
           clusterID = var.cluster_name
         }
       }
-      ipam = {
-        podCIDR         = var.pod_cidr
-        serviceCIDR     = var.service_cidr
-        pools           = local.pools_cidrs
-        reservedSubnets = var.reserved_subnet_cidrs
-      }
+      ipam = merge(
+        {
+          podCIDR         = var.pod_cidr
+          serviceCIDR     = var.service_cidr
+          pools           = var.ipam_pools != null ? var.ipam_pools : local.pools_cidrs
+          reservedSubnets = var.reserved_subnet_cidrs
+        },
+        var.ipam_external_cidr != null ? { externalCIDR = var.ipam_external_cidr } : {},
+        var.ipam_internal_cidr != null ? { internalCIDR = var.ipam_internal_cidr } : {}
+      )
       telemetry = {
         enabled = false
       }
