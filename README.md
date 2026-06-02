@@ -509,7 +509,7 @@ MIT
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.10 |
-| <a name="requirement_castai"></a> [castai](#requirement\_castai) | = 8.37.0 |
+| <a name="requirement_castai"></a> [castai](#requirement\_castai) | = 8.39.1 |
 | <a name="requirement_external"></a> [external](#requirement\_external) | >= 2.3.5 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | >= 3.1.1 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | >= 2.35.0 |
@@ -519,7 +519,7 @@ MIT
 
 | Name | Version |
 |------|---------|
-| <a name="provider_castai"></a> [castai](#provider\_castai) | 8.37.0 |
+| <a name="provider_castai"></a> [castai](#provider\_castai) | 8.39.1 |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.2 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.1.0 |
 
@@ -535,7 +535,7 @@ MIT
 
 | Name | Type |
 |------|------|
-| [castai_omni_cluster.this](https://registry.terraform.io/providers/castai/castai/8.37.0/docs/resources/omni_cluster) | resource |
+| [castai_omni_cluster.this](https://registry.terraform.io/providers/castai/castai/8.39.1/docs/resources/omni_cluster) | resource |
 | [helm_release.omni_agent](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubernetes_config_map_v1.helm_values](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map_v1) | resource |
 | [kubernetes_namespace_v1.omni](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace_v1) | resource |
