@@ -46,13 +46,13 @@ variable "organization_id" {
 variable "storage_provider" {
   description = "Storage provider (storageclass) for the edge clusters. If empty, they will be defaulted to `gp3` for EKS"
   type        = string
-  default     = null
+  default     = "gp3"
 }
 
 variable "loadbalancer_provider" {
   description = "LoadBalancer provider for edge cluster. This setting is used only for EKS clusters (accepted values are `nlb` and `external`). If empty, it will be defaulted to `external` for EKS"
   type        = string
-  default     = null
+  default     = "external"
 }
 
 variable "skip_helm" {

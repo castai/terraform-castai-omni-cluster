@@ -108,11 +108,9 @@ module "castai_omni_edge_location_aws" {
     ManagedBy = "terraform"
   }
 
-  default_edge_configuration_name = "gpu"
-
   edge_configurations = {
     gpu = {
-      name = "gpu"
+      name               = "gpu"
       image_id           = "ami-0gpu1234567890"  # GPU-enabled AMI
       boot_disk_size_gib = 200
       tags = {
