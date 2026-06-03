@@ -154,3 +154,16 @@ resource "kubernetes_config_map_v1" "helm_values" {
 
   depends_on = [kubernetes_namespace_v1.omni]
 }
+
+resource "kubernetes_labels" "castai_agent_omni_offloading" {
+  api_version = "v1"
+  kind        = "Namespace"
+
+  metadata {
+    name = "castai-agent"
+  }
+
+  labels = {
+    "omni.cast.ai/enable-scheduling-local-only" = "true"
+  }
+}
