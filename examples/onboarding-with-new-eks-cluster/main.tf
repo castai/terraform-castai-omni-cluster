@@ -86,6 +86,8 @@ module "castai_omni_cluster" {
   loadbalancer_provider = var.loadbalancer_provider
 
   skip_helm = var.skip_helm
+
+  depends_on = [helm_release.aws_load_balancer_controller, kubernetes_storage_class_v1.gp3]
 }
 
 module "castai_omni_edge_location_aws" {
