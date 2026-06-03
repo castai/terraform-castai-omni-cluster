@@ -14,7 +14,7 @@ locals {
       }
       ipam = merge(
         {
-          podCIDR         = var.pod_cidr
+          podCIDRs        = var.pod_cidrs
           serviceCIDR     = var.service_cidr
           pools           = var.ipam_pools != null ? var.ipam_pools : local.pools_cidrs
           reservedSubnets = var.reserved_subnet_cidrs

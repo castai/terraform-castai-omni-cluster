@@ -8,9 +8,9 @@ variable "api_server_address" {
   type        = string
 }
 
-variable "pod_cidr" {
-  description = "Pod CIDR for IPAM configuration"
-  type        = string
+variable "pod_cidrs" {
+  description = "List of Pod CIDRs for IPAM configuration"
+  type        = list(string)
 }
 
 variable "service_cidr" {

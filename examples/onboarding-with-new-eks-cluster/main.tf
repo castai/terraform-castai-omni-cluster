@@ -66,6 +66,17 @@ module "castai_eks_cluster" {
   depends_on = [module.castai_eks_role_iam]
 }
 
+data "aws_vpc" "this" {
+  id = module.eks_vpc.vpc_id
+}
+
+locals {
+  pod_cidrs = [
+    for assoc in data.aws_vpc.this.cidr_block_associations : assoc.cidr_block
+    if assoc.state == "associated"
+  ]
+}
+
 module "castai_omni_cluster" {
   source = "../.."
 
@@ -78,7 +89,7 @@ module "castai_omni_cluster" {
   cluster_name    = var.cluster_name
   cluster_region  = var.cluster_region
 
-  pod_cidr           = module.eks_vpc.vpc_cidr_block
+  pod_cidrs          = local.pod_cidrs
   api_server_address = module.eks.cluster_endpoint
   service_cidr       = module.eks.cluster_service_cidr
 

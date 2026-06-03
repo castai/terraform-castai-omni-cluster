@@ -14,9 +14,9 @@ module "castai_omni_cluster" {
   cluster_id      = var.cluster_id
   cluster_name    = var.aks_cluster_name
 
-  api_server_address = "https://${data.azurerm_kubernetes_cluster.aks.fqdn}"
-  pod_cidr           = data.azurerm_kubernetes_cluster.aks.network_profile[0].pod_cidr
-  service_cidr       = data.azurerm_kubernetes_cluster.aks.network_profile[0].service_cidr
+  api_server_address  = "https://${data.azurerm_kubernetes_cluster.aks.fqdn}"
+  pod_cidrs           = [data.azurerm_kubernetes_cluster.aks.network_profile[0].pod_cidr]
+  service_cidr        = data.azurerm_kubernetes_cluster.aks.network_profile[0].service_cidr
 
   skip_helm = var.skip_helm
 }

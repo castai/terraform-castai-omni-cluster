@@ -520,8 +520,9 @@ MIT
 | Name | Version |
 |------|---------|
 | <a name="provider_castai"></a> [castai](#provider\_castai) | 8.39.1 |
-| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.1.2 |
-| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.1.0 |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.2.0 |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.2.0 |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
 
@@ -540,6 +541,7 @@ MIT
 | [kubernetes_config_map_v1.helm_values](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map_v1) | resource |
 | [kubernetes_namespace_v1.omni](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace_v1) | resource |
 | [kubernetes_secret_v1.api_token](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret_v1) | resource |
+| [terraform_data.pod_cidr_validation](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
 ## Inputs
 
@@ -560,7 +562,8 @@ MIT
 | <a name="input_loadbalancer_provider"></a> [loadbalancer\_provider](#input\_loadbalancer\_provider) | LoadBalancer provider for edge cluster. This setting is used only for EKS clusters (accepted values are `nlb` and `external`). If empty, it will be defaulted to `external` for EKS | `string` | `null` | no |
 | <a name="input_omni_agent_chart_version"></a> [omni\_agent\_chart\_version](#input\_omni\_agent\_chart\_version) | OMNI agent helm chart version | `string` | `"1.13.1"` | no |
 | <a name="input_organization_id"></a> [organization\_id](#input\_organization\_id) | CAST AI organization ID | `string` | n/a | yes |
-| <a name="input_pod_cidr"></a> [pod\_cidr](#input\_pod\_cidr) | Pod CIDR for network configuration | `string` | n/a | yes |
+| <a name="input_pod_cidr"></a> [pod\_cidr](#input\_pod\_cidr) | DEPRECATED: Please use 'pod\_cidrs' instead. Pod CIDR for network configuration | `string` | `null` | no |
+| <a name="input_pod_cidrs"></a> [pod\_cidrs](#input\_pod\_cidrs) | List of Pod CIDRs for network configuration. | `list(string)` | `null` | no |
 | <a name="input_reserved_subnet_cidrs"></a> [reserved\_subnet\_cidrs](#input\_reserved\_subnet\_cidrs) | List of reserved subnet CIDRs. On GKE and AKS (Azure CNI Overlay or Kubenet CNI) you should at least include the node subnet CIDR used by the cluster | `list(string)` | `[]` | no |
 | <a name="input_service_cidr"></a> [service\_cidr](#input\_service\_cidr) | Service CIDR for network configuration | `string` | n/a | yes |
 | <a name="input_skip_helm"></a> [skip\_helm](#input\_skip\_helm) | Skip installing any helm release; allows managing helm releases using GitOps | `bool` | `false` | no |
