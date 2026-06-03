@@ -538,6 +538,7 @@ MIT
 | [castai_omni_cluster.this](https://registry.terraform.io/providers/castai/castai/8.39.1/docs/resources/omni_cluster) | resource |
 | [helm_release.omni_agent](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubernetes_config_map_v1.helm_values](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map_v1) | resource |
+| [kubernetes_labels.castai_agent_omni_offloading](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/labels) | resource |
 | [kubernetes_namespace_v1.omni](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace_v1) | resource |
 | [kubernetes_secret_v1.api_token](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret_v1) | resource |
 
