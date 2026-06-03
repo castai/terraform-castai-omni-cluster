@@ -509,7 +509,7 @@ MIT
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.10 |
-| <a name="requirement_castai"></a> [castai](#requirement\_castai) | = 8.39.1 |
+| <a name="requirement_castai"></a> [castai](#requirement\_castai) | >= 8.39.1 |
 | <a name="requirement_external"></a> [external](#requirement\_external) | >= 2.3.5 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | >= 3.1.1 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | >= 2.35.0 |
@@ -535,7 +535,7 @@ MIT
 
 | Name | Type |
 |------|------|
-| [castai_omni_cluster.this](https://registry.terraform.io/providers/castai/castai/8.39.1/docs/resources/omni_cluster) | resource |
+| [castai_omni_cluster.this](https://registry.terraform.io/providers/castai/castai/latest/docs/resources/omni_cluster) | resource |
 | [helm_release.omni_agent](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubernetes_config_map_v1.helm_values](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map_v1) | resource |
 | [kubernetes_labels.castai_agent_omni_offloading](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/labels) | resource |
@@ -559,7 +559,7 @@ MIT
 | <a name="input_k8s_provider"></a> [k8s\_provider](#input\_k8s\_provider) | Kubernetes cloud provider (gke, eks, aks) | `string` | n/a | yes |
 | <a name="input_kvisor_grpc_url"></a> [kvisor\_grpc\_url](#input\_kvisor\_grpc\_url) | Kvisor gRPC URL | `string` | `"kvisor.prod-master.cast.ai:443"` | no |
 | <a name="input_loadbalancer_provider"></a> [loadbalancer\_provider](#input\_loadbalancer\_provider) | LoadBalancer provider for edge cluster. This setting is used only for EKS clusters (accepted values are `nlb` and `external`). If empty, it will be defaulted to `external` for EKS | `string` | `null` | no |
-| <a name="input_omni_agent_chart_version"></a> [omni\_agent\_chart\_version](#input\_omni\_agent\_chart\_version) | OMNI agent helm chart version | `string` | `"1.12.15"` | no |
+| <a name="input_omni_agent_chart_version"></a> [omni\_agent\_chart\_version](#input\_omni\_agent\_chart\_version) | OMNI agent helm chart version | `string` | `"1.13.1"` | no |
 | <a name="input_organization_id"></a> [organization\_id](#input\_organization\_id) | CAST AI organization ID | `string` | n/a | yes |
 | <a name="input_pod_cidr"></a> [pod\_cidr](#input\_pod\_cidr) | Pod CIDR for network configuration | `string` | n/a | yes |
 | <a name="input_reserved_subnet_cidrs"></a> [reserved\_subnet\_cidrs](#input\_reserved\_subnet\_cidrs) | List of reserved subnet CIDRs. On GKE and AKS (Azure CNI Overlay or Kubenet CNI) you should at least include the node subnet CIDR used by the cluster | `list(string)` | `[]` | no |
