@@ -86,6 +86,8 @@ module "castai_omni_cluster" {
   loadbalancer_provider = var.loadbalancer_provider
 
   skip_helm = var.skip_helm
+
+  depends_on = [helm_release.aws_load_balancer_controller, kubernetes_storage_class_v1.gp3]
 }
 
 module "castai_omni_edge_location_aws" {
@@ -106,11 +108,9 @@ module "castai_omni_edge_location_aws" {
     ManagedBy = "terraform"
   }
 
-  default_edge_configuration_name = "gpu"
-
   edge_configurations = {
     gpu = {
-      name = "gpu"
+      name               = "gpu"
       image_id           = "ami-0gpu1234567890"  # GPU-enabled AMI
       boot_disk_size_gib = 200
       tags = {

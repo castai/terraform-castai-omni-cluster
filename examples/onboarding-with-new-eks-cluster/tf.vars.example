@@ -8,3 +8,6 @@ castai_api_token = "<placeholder>"
 organization_id  = "<placeholder>"
 
 edge_location_name = "<placeholder>"
+
+storage_provider      = "gp3"
+loadbalancer_provider = "external"
