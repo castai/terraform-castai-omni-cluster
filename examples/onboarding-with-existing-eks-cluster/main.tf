@@ -8,6 +8,13 @@ data "aws_vpc" "eks_vpc" {
   region = var.eks_cluster_region
 }
 
+locals {
+  pod_cidrs = [
+    for assoc in data.aws_vpc.eks_vpc.cidr_block_associations : assoc.cidr_block
+    if assoc.state == "associated"
+  ]
+}
+
 module "castai_omni_cluster" {
   source = "../.."
 
@@ -20,7 +27,7 @@ module "castai_omni_cluster" {
   cluster_name    = var.eks_cluster_name
 
   api_server_address = data.aws_eks_cluster.eks.endpoint
-  pod_cidr           = data.aws_vpc.eks_vpc.cidr_block
+  pod_cidrs          = local.pod_cidrs
   service_cidr       = data.aws_eks_cluster.eks.kubernetes_network_config[0].service_ipv4_cidr
 
   storage_provider      = var.storage_provider

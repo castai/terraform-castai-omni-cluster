@@ -46,8 +46,15 @@ variable "api_server_address" {
 }
 
 variable "pod_cidr" {
-  description = "Pod CIDR for network configuration"
+  description = "DEPRECATED: Please use 'pod_cidrs' instead. Pod CIDR for network configuration"
   type        = string
+  default     = null
+}
+
+variable "pod_cidrs" {
+  description = "List of Pod CIDRs for network configuration."
+  type        = list(string)
+  default     = null
 }
 
 variable "service_cidr" {

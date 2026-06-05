@@ -5,6 +5,20 @@ check "reserved_cidrs_required_for_gke" {
   }
 }
 
+resource "terraform_data" "pod_cidr_validation" {
+  lifecycle {
+    precondition {
+      condition     = (var.pod_cidr != null) != (var.pod_cidrs != null)
+      error_message = "Provide exactly one of 'pod_cidr' (deprecated) or 'pod_cidrs'."
+    }
+
+    precondition {
+      condition     = var.pod_cidrs == null || length(var.pod_cidrs) > 0
+      error_message = "'pod_cidrs' list cannot be empty if provided."
+    }
+  }
+}
+
 # GKE-specific Liqo Helm chart configuration
 module "liqo_helm_values_gke" {
   count  = var.k8s_provider == "gke" ? 1 : 0
@@ -12,12 +26,14 @@ module "liqo_helm_values_gke" {
 
   cluster_name          = var.cluster_name
   api_server_address    = var.api_server_address
-  pod_cidr              = var.pod_cidr
+  pod_cidrs             = local.pod_cidrs
   service_cidr          = var.service_cidr
   reserved_subnet_cidrs = var.reserved_subnet_cidrs
   ipam_pools            = var.ipam_pools
   ipam_external_cidr    = var.ipam_external_cidr
   ipam_internal_cidr    = var.ipam_internal_cidr
+
+  depends_on = [terraform_data.pod_cidr_validation]
 }
 
 # EKS-specific Liqo Helm chart configuration
@@ -27,12 +43,14 @@ module "liqo_helm_values_eks" {
 
   cluster_name          = var.cluster_name
   api_server_address    = var.api_server_address
-  pod_cidr              = var.pod_cidr
+  pod_cidrs             = local.pod_cidrs
   service_cidr          = var.service_cidr
   reserved_subnet_cidrs = var.reserved_subnet_cidrs
   ipam_pools            = var.ipam_pools
   ipam_external_cidr    = var.ipam_external_cidr
   ipam_internal_cidr    = var.ipam_internal_cidr
+
+  depends_on = [terraform_data.pod_cidr_validation]
 }
 
 # AKS-specific Liqo Helm chart configuration
@@ -42,12 +60,14 @@ module "liqo_helm_values_aks" {
 
   cluster_name          = var.cluster_name
   api_server_address    = var.api_server_address
-  pod_cidr              = var.pod_cidr
+  pod_cidrs             = local.pod_cidrs
   service_cidr          = var.service_cidr
   reserved_subnet_cidrs = var.reserved_subnet_cidrs
   ipam_pools            = var.ipam_pools
   ipam_external_cidr    = var.ipam_external_cidr
   ipam_internal_cidr    = var.ipam_internal_cidr
+
+  depends_on = [terraform_data.pod_cidr_validation]
 }
 
 locals {
@@ -56,6 +76,8 @@ locals {
   omni_agent_chart        = "omni-agent"
   castai_helm_repository  = "https://castai.github.io/helm-charts"
   castai_agent_secret_ref = "castai-omni-agent-token"
+
+  pod_cidrs = var.pod_cidr != null ? [var.pod_cidr] : var.pod_cidrs
 
   storage_provider      = var.storage_provider != null ? var.storage_provider : (var.k8s_provider == "gke" ? "premium-rwo" : (var.k8s_provider == "eks" ? "gp3" : ""))
   loadbalancer_provider = var.loadbalancer_provider != null ? var.loadbalancer_provider : (var.k8s_provider == "eks" ? "external" : "")
@@ -131,7 +153,7 @@ resource "castai_omni_cluster" "this" {
 
   status = {
     omni_agent_version = var.omni_agent_chart_version
-    pod_cidr           = var.pod_cidr
+    pod_cidr           = join(",", local.pod_cidrs)
   }
 
   depends_on = [helm_release.omni_agent]
