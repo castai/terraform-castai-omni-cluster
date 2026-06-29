@@ -104,6 +104,12 @@ variable "loadbalancer_provider" {
   default     = null
 }
 
+variable "omni_agent_helm_values" {
+  description = "Override values for the omni-agent Helm release. When provided, these values are merged with the default computed values, with these taking precedence. Accepts any valid Helm values map."
+  type        = any
+  default     = null
+}
+
 variable "skip_helm" {
   description = "Skip installing any helm release; allows managing helm releases using GitOps"
   type        = bool
