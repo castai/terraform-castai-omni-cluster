@@ -141,7 +141,10 @@ resource "helm_release" "omni_agent" {
   cleanup_on_fail  = true
   wait             = true
 
-  values = [yamlencode(local.helm_yaml_values)]
+  values = concat(
+    [yamlencode(local.helm_yaml_values)],
+    var.omni_agent_helm_values != null ? [yamlencode(var.omni_agent_helm_values)] : []
+  )
 
   depends_on = [kubernetes_secret_v1.api_token]
 }
