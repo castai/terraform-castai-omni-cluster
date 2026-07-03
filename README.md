@@ -519,9 +519,9 @@ MIT
 
 | Name | Version |
 |------|---------|
-| <a name="provider_castai"></a> [castai](#provider\_castai) | 8.41.0 |
+| <a name="provider_castai"></a> [castai](#provider\_castai) | 8.43.0 |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.2.0 |
-| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.2.0 |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.2.1 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
@@ -539,6 +539,7 @@ MIT
 | [castai_omni_cluster.this](https://registry.terraform.io/providers/castai/castai/latest/docs/resources/omni_cluster) | resource |
 | [helm_release.omni_agent](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubernetes_config_map_v1.helm_values](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map_v1) | resource |
+| [kubernetes_labels.castai_agent_ns_offloading_label](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/labels) | resource |
 | [kubernetes_namespace_v1.omni](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace_v1) | resource |
 | [kubernetes_secret_v1.api_token](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret_v1) | resource |
 | [terraform_data.pod_cidr_validation](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
