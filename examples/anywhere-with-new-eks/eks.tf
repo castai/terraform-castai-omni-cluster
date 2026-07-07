@@ -115,32 +115,12 @@ module "ebs_csi_driver_irsa" {
   attach_ebs_csi_policy = true
 }
 
-# EKS creates a gp2 StorageClass and marks it as default by default.
-# Kubernetes does not allow multiple default StorageClasses, so we must
-# remove the default annotation from gp2 before creating gp3.
-resource "null_resource" "remove_gp2_default" {
-  triggers = {
-    cluster_name = module.eks.cluster_name
-    region       = var.cluster_region
-  }
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      aws eks update-kubeconfig --name ${self.triggers.cluster_name} --region ${self.triggers.region} --kubeconfig /tmp/kubeconfig-${self.triggers.cluster_name}.yaml
-      kubectl --kubeconfig /tmp/kubeconfig-${self.triggers.cluster_name}.yaml annotate storageclass gp2 storageclass.kubernetes.io/is-default-class- --overwrite=true || true
-    EOT
-  }
-
-  depends_on = [module.eks]
-}
-
+# EKS creates a gp2 StorageClass by default, however gp3 is a preferred one.
 resource "kubernetes_storage_class_v1" "gp3" {
   metadata {
     name = "gp3"
-    annotations = {
-      "storageclass.kubernetes.io/is-default-class" = "true"
-    }
   }
+
   storage_provisioner    = "ebs.csi.aws.com"
   volume_binding_mode    = "WaitForFirstConsumer"
   allow_volume_expansion = true
@@ -149,7 +129,7 @@ resource "kubernetes_storage_class_v1" "gp3" {
     encrypted = "true"
   }
 
-  depends_on = [null_resource.remove_gp2_default]
+  depends_on = [module.eks]
 }
 
 module "aws_load_balancer_controller_irsa" {
