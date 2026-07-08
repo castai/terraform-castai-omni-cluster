@@ -26,6 +26,7 @@ locals {
         enabled = false
       }
       networking = {
+        apiServerAccessThroughEndpointSlices = true
         fabric = {
           config = {
             fullMasquerade                 = true
