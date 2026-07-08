@@ -89,7 +89,7 @@ variable "ipam_internal_cidr" {
 variable "omni_agent_chart_version" {
   description = "OMNI agent helm chart version"
   type        = string
-  default     = "1.15.3"
+  default     = "1.15.2"
 }
 
 variable "storage_provider" {
