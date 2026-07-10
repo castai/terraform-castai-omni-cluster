@@ -12,7 +12,9 @@ if ! blkid /dev/xvdf; then
   mkfs.ext4 /dev/xvdf
 fi
 mkdir -p /var/lib/registry
-echo '/dev/xvdf /var/lib/registry ext4 defaults 0 2' >> /etc/fstab
+if ! grep -q '/dev/xvdf /var/lib/registry' /etc/fstab; then
+  echo '/dev/xvdf /var/lib/registry ext4 defaults 0 2' >> /etc/fstab
+fi
 mount -a
 
 # Write Let's Encrypt certificate and key
