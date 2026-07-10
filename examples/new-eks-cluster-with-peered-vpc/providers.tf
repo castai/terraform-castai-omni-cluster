@@ -4,37 +4,36 @@ terraform {
   required_providers {
     castai = {
       source  = "castai/castai"
-      version = ">= 8.31.3"
+      version = ">= 8.48.0"
     }
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 6.23.0"
+      version = ">= 6.54.0"
     }
     helm = {
       source  = "hashicorp/helm"
-      version = ">= 3.1.1"
+      version = ">= 3.2.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = ">= 2.35.0"
+      version = ">= 3.2.1"
     }
     null = {
       source  = "hashicorp/null"
-      version = ">= 3.2.4"
+      version = ">= 3.3.0"
     }
     external = {
       source  = "hashicorp/external"
-      version = ">= 2.3.5"
+      version = ">= 2.4.0"
     }
     google = {
       source  = "hashicorp/google"
-      version = ">= 4.0"
+      version = ">= 7.39.0"
     }
     oci = {
       source  = "oracle/oci"
-      version = ">= 7.4.0"
+      version = ">= 8.22.0"
     }
-
   }
 }
 
