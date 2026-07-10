@@ -519,10 +519,10 @@ MIT
 
 | Name | Version |
 |------|---------|
-| <a name="provider_castai"></a> [castai](#provider\_castai) | 8.47.0 |
-| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.2.0 |
-| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.2.1 |
-| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
+| <a name="provider_castai"></a> [castai](#provider\_castai) | 8.49.0 |
+| <a name="provider_helm"></a> [helm](#provider\_helm) | 3.2.0   |
+| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.2.1   |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a     |
 
 ## Modules
 
