@@ -65,8 +65,8 @@ module "eks" {
       name          = "${var.cluster_name}-ng-1"
       instance_type = "m5.large"
       max_size      = 5
-      min_size      = 2
-      desired_size  = 2
+      min_size      = 3
+      desired_size  = 3
 
       metadata_options = {
         http_endpoint               = "enabled"
