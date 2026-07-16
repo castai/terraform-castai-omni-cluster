@@ -15,6 +15,9 @@ locals {
           clusterID = var.cluster_name
         }
       }
+      networking = {
+        apiServerAccessThroughEndpointSlices = true
+      }
       ipam = merge(
         {
           podCIDRs        = var.pod_cidrs
