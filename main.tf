@@ -191,4 +191,6 @@ resource "kubernetes_labels" "castai_agent_ns_offloading_label" {
   labels = {
     "omni.cast.ai/enable-scheduling-local-only" = "true"
   }
+
+  depends_on = [helm_release.omni_agent]
 }
