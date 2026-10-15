@@ -511,7 +511,7 @@ MIT
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.10 |
 | <a name="requirement_castai"></a> [castai](#requirement\_castai) | >= 8.39.1 |
 | <a name="requirement_external"></a> [external](#requirement\_external) | >= 2.3.5 |
-| <a name="requirement_helm"></a> [helm](#requirement\_helm) | >= 3.1.1 |
+| <a name="requirement_helm"></a> [helm](#requirement\_helm) | >= 2.17, < 4.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | >= 2.35.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | >= 3.2.4 |
 
@@ -519,7 +519,7 @@ MIT
 
 | Name | Version |
 |------|---------|
-| <a name="provider_castai"></a> [castai](#provider\_castai) | 9.6.1 |
+| <a name="provider_castai"></a> [castai](#provider\_castai) | 9.8.0 |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.3.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.3.0 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
