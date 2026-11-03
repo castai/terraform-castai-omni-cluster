@@ -80,7 +80,7 @@ locals {
   pod_cidrs = var.pod_cidr != null ? [var.pod_cidr] : var.pod_cidrs
 
   storage_provider      = var.storage_provider != null ? var.storage_provider : (var.k8s_provider == "gke" ? "premium-rwo" : (var.k8s_provider == "eks" ? "gp3" : ""))
-  loadbalancer_provider = var.loadbalancer_provider != null ? var.loadbalancer_provider : (var.k8s_provider == "eks" ? "external" : "")
+  loadbalancer_provider = var.loadbalancer_provider != null ? var.loadbalancer_provider : (var.k8s_provider == "gke" ? "gke" : (var.k8s_provider == "eks" ? "external" : (var.k8s_provider == "aks" ? "aks" : "")))
 
   # Select the appropriate yaml_values based on k8s_provider
   liqo_yaml_values = merge(
