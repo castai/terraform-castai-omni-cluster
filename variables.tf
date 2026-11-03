@@ -99,7 +99,7 @@ variable "storage_provider" {
 }
 
 variable "loadbalancer_provider" {
-  description = "LoadBalancer provider for edge cluster. This setting is used only for EKS clusters (accepted values are `nlb` and `external`). If empty, it will be defaulted to `external` for EKS"
+  description = "LoadBalancer provider for edge cluster (accepted values are `nlb` and `external` for EKS, `gke` for GKE and `aks` for AKS). If empty, it will be defaulted to `external` for EKS, `gke` for GKE and `aks` for AKS"
   type        = string
   default     = null
 }
