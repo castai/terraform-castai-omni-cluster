@@ -4,7 +4,7 @@ terraform {
   required_providers {
     castai = {
       source  = "castai/castai"
-      version = ">= 8.39.1"
+      version = ">= 9.19.0"
     }
     google = {
       source  = "hashicorp/google"
