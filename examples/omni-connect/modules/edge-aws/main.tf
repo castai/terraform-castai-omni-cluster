@@ -60,11 +60,5 @@ resource "aws_instance" "edge" {
     volume_size = var.boot_disk_size
   }
 
-  # A warm-up apt update keeps the first join fast.
-  # user_data = <<-EOT
-  #   #!/bin/sh
-  #   apt-get update || true
-  # EOT
-
   tags = { Name = each.key }
 }

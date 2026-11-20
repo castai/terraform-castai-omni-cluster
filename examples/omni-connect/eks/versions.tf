@@ -84,7 +84,7 @@ variable "edge_instance_type" {
 variable "chart_version" {
   description = "omni-connect chart version in the demo registry"
   type        = string
-  default     = "1.0.11"
+  default     = "1.0.12"
 }
 
 variable "registry" {

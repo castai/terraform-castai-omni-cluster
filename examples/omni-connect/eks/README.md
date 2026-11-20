@@ -6,11 +6,6 @@
 - `aws` authenticated (`aws sso login` or credentials)
 - `kubectl`, `ssh` and `helm` (for the controller chart) on your PATH
 
-The chart and images come from the demo registry
-(`us-central1-docker.pkg.dev/localenv-andzej/omninet`). To build and push
-your own, run `OMNI_TAG=1.0.0-demo ./tools/build.sh` from the repository root
-and point `var.registry` and `var.chart_version` at the result.
-
 ## Run
 
 ```sh
