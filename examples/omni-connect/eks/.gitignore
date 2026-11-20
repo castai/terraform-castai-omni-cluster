@@ -1,0 +1,6 @@
+.kubeconfig
+.edge_ssh_key
+.edge_known_hosts
+.terraform/
+.terraform.lock.hcl
+*.tfstate*
