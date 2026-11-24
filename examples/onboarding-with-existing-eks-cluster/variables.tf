@@ -71,20 +71,27 @@ variable "omni_connect" {
   type = object({
     chart = object({
       repository          = string
+      name                = optional(string)
       version             = string
       cluster_agent_image = object({ repository = string, tag = string })
       node_agent_image    = object({ repository = string, tag = string })
     })
     public_url       = optional(string)
     cidr             = optional(string)
+    cloud_cidrs      = optional(list(string), [])
     storage_provider = optional(string)
     virtual_nodes    = optional(bool)
     kubelet_aws = optional(object({
-      node_role_arn  = optional(string)
-      cluster_name   = optional(string)
-      serving_signer = optional(string)
-      rbac_group     = optional(string)
-      node_identity  = optional(bool, false)
+      node_role_arn   = optional(string)
+      cluster_name    = optional(string)
+      username_prefix = optional(string)
+      serving_signer  = optional(string)
+      rbac_group      = optional(string)
+      node_identity   = optional(bool, false)
+    }))
+    service = optional(object({
+      type        = optional(string)
+      annotations = optional(map(string))
     }))
     helm_values = optional(any)
   })

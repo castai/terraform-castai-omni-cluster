@@ -113,7 +113,7 @@ resource "terraform_data" "omni_connect_configuration" {
 
   lifecycle {
     precondition {
-      condition = alltrue([
+      condition = var.omni_connect != null && alltrue([
         for value in [
           var.omni_connect.chart.repository,
           var.omni_connect.chart.version,
@@ -123,8 +123,14 @@ resource "terraform_data" "omni_connect_configuration" {
           var.omni_connect.chart.node_agent_image.tag,
         ] : trimspace(value) != ""
       ])
-      error_message = "When install_omni_connect is true, omni_connect.chart repository/version and both agent image repositories/tags must be non-empty."
+      error_message = "When install_omni_connect is true, omni_connect and its chart repository/version and both agent image repositories/tags must be provided and non-empty."
     }
+
+    precondition {
+      condition     = try(var.omni_connect.kubelet_aws, null) == null || try(trimspace(var.omni_connect.kubelet_aws.node_role_arn), "") != ""
+      error_message = "On EKS, omni_connect.kubelet_aws.node_role_arn must not be empty when this block is supplied."
+    }
+
   }
 }
 
@@ -218,6 +224,9 @@ resource "kubernetes_config_map_v1" "helm_values" {
       "omni-connect.chart"       = module.omni_connect[0].chart.name
       "omni-connect.version"     = module.omni_connect[0].chart.version
       "omni-connect-values.yaml" = yamlencode(module.omni_connect[0].helm_values)
+    } : {},
+    var.install_omni_connect && module.omni_connect[0].overrides != null ? {
+      "omni-connect-overrides.yaml" = yamlencode(module.omni_connect[0].overrides)
     } : {},
   )
 

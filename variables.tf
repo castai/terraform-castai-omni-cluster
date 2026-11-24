@@ -159,6 +159,10 @@ variable "omni_connect" {
       rbac_group      = optional(string)
       node_identity   = optional(bool, false)
     }))
+    service = optional(object({
+      type        = optional(string)
+      annotations = optional(map(string))
+    }))
     helm_values = optional(any)
   })
   default = null

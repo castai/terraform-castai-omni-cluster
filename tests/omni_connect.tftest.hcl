@@ -237,3 +237,183 @@ run "enabled_missing_node_agent_repository" {
 
   expect_failures = [terraform_data.omni_connect_configuration]
 }
+
+run "enabled_null_configuration" {
+  command = plan
+
+  variables {
+    install_omni_connect = true
+    omni_connect         = null
+  }
+
+  expect_failures = [terraform_data.omni_connect_configuration]
+}
+
+run "enabled_missing_aws_role" {
+  command = plan
+
+  variables {
+    install_omni_connect = true
+    omni_connect = {
+      chart = {
+        repository = "oci://registry.example.com/charts"
+        version    = "0.1.0-test"
+        cluster_agent_image = {
+          repository = "registry.example.com/castai/omni-cluster-agent"
+          tag        = "0.1.0-test"
+        }
+        node_agent_image = {
+          repository = "registry.example.com/castai/omni-node-agent"
+          tag        = "0.1.0-test"
+        }
+      }
+      kubelet_aws = {
+        serving_signer = "beta.eks.amazonaws.com/app-serving"
+      }
+    }
+  }
+
+  expect_failures = [terraform_data.omni_connect_configuration]
+}
+
+run "enabled_overrides_direct" {
+  command = plan
+
+  variables {
+    install_omni_connect = true
+    omni_connect = {
+      chart = {
+        repository = "oci://registry.example.com/charts"
+        version    = "0.1.0-test"
+        cluster_agent_image = {
+          repository = "registry.example.com/castai/omni-cluster-agent"
+          tag        = "0.1.0-test"
+        }
+        node_agent_image = {
+          repository = "registry.example.com/castai/omni-node-agent"
+          tag        = "0.1.0-test"
+        }
+      }
+      helm_values = {
+        controlPlane = {
+          logLevel = "debug"
+        }
+      }
+    }
+  }
+
+  assert {
+    condition = (
+      length(module.omni_connect[0].values) == 2 &&
+      strcontains(module.omni_connect[0].values[0], "registry.example.com/castai") &&
+      strcontains(module.omni_connect[0].values[1], "debug")
+    )
+    error_message = "Direct Helm mode must render defaults then the user overrides in the same order"
+  }
+}
+
+run "enabled_overrides_gitops" {
+  command = plan
+
+  variables {
+    install_omni_connect = true
+    skip_helm            = true
+    omni_connect = {
+      chart = {
+        repository = "oci://registry.example.com/charts"
+        version    = "0.1.0-test"
+        cluster_agent_image = {
+          repository = "registry.example.com/castai/omni-cluster-agent"
+          tag        = "0.1.0-test"
+        }
+        node_agent_image = {
+          repository = "registry.example.com/castai/omni-node-agent"
+          tag        = "0.1.0-test"
+        }
+      }
+      helm_values = {
+        controlPlane = {
+          logLevel = "debug"
+        }
+      }
+    }
+  }
+
+  assert {
+    condition     = strcontains(kubernetes_config_map_v1.helm_values[0].data["omni-connect-overrides.yaml"], "debug")
+    error_message = "GitOps must export the user-provided Helm overrides instead of dropping them"
+  }
+
+  assert {
+    condition     = !contains(keys(kubernetes_config_map_v1.helm_values[0].data), "postgres")
+    error_message = "Overriding one control-plane field must not change unrelated defaults"
+  }
+}
+
+run "enabled_custom_service" {
+  command = plan
+
+  variables {
+    install_omni_connect = true
+    omni_connect = {
+      chart = {
+        repository = "oci://registry.example.com/charts"
+        version    = "0.1.0-test"
+        cluster_agent_image = {
+          repository = "registry.example.com/castai/omni-cluster-agent"
+          tag        = "0.1.0-test"
+        }
+        node_agent_image = {
+          repository = "registry.example.com/castai/omni-node-agent"
+          tag        = "0.1.0-test"
+        }
+      }
+      service = {
+        type = "NodePort"
+        annotations = {
+          "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internal"
+        }
+      }
+    }
+  }
+
+  assert {
+    condition     = module.omni_connect[0].helm_values.controlPlane.service.type == "NodePort"
+    error_message = "The configured control-plane service type must be honored"
+  }
+
+  assert {
+    condition     = module.omni_connect[0].helm_values.controlPlane.service.annotations["service.beta.kubernetes.io/aws-load-balancer-scheme"] == "internal"
+    error_message = "Service annotations must be propagated for internal load balancers"
+  }
+}
+
+run "enabled_eks_role_only" {
+  command = plan
+
+  variables {
+    install_omni_connect = true
+    omni_connect = {
+      chart = {
+        repository = "oci://registry.example.com/charts"
+        version    = "0.1.0-test"
+        cluster_agent_image = {
+          repository = "registry.example.com/castai/omni-cluster-agent"
+          tag        = "0.1.0-test"
+        }
+        node_agent_image = {
+          repository = "registry.example.com/castai/omni-node-agent"
+          tag        = "0.1.0-test"
+        }
+      }
+      kubelet_aws = {
+        node_role_arn = "arn:iam:role/omni-edge-test"
+      }
+    }
+  }
+
+  assert {
+    condition     = !contains(keys(module.omni_connect[0].helm_values.omninet.kubeletAWS), "clusterName") && !contains(keys(module.omni_connect[0].helm_values.omninet.kubeletAWS), "usernamePrefix")
+    error_message = "Optional kubelet_aws fields must not be emitted as empty strings"
+  }
+}
