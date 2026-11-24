@@ -108,6 +108,26 @@ locals {
   }
 }
 
+resource "terraform_data" "omni_connect_configuration" {
+  count = var.install_omni_connect ? 1 : 0
+
+  lifecycle {
+    precondition {
+      condition = alltrue([
+        for value in [
+          var.omni_connect.chart.repository,
+          var.omni_connect.chart.version,
+          var.omni_connect.chart.cluster_agent_image.repository,
+          var.omni_connect.chart.cluster_agent_image.tag,
+          var.omni_connect.chart.node_agent_image.repository,
+          var.omni_connect.chart.node_agent_image.tag,
+        ] : trimspace(value) != ""
+      ])
+      error_message = "When install_omni_connect is true, omni_connect.chart repository/version and both agent image repositories/tags must be non-empty."
+    }
+  }
+}
+
 resource "kubernetes_namespace_v1" "omni" {
   metadata {
     name = local.omni_namespace
@@ -126,6 +146,22 @@ resource "kubernetes_secret_v1" "api_token" {
   }
 
   depends_on = [kubernetes_namespace_v1.omni]
+}
+
+module "omni_connect" {
+  count  = var.install_omni_connect ? 1 : 0
+  source = "./modules/omni-connect"
+
+  k8s_provider     = var.k8s_provider
+  namespace        = local.omni_namespace
+  storage_provider = local.storage_provider
+  skip_helm        = var.skip_helm
+  omni_connect     = var.omni_connect
+
+  depends_on = [
+    kubernetes_namespace_v1.omni,
+    terraform_data.omni_connect_configuration,
+  ]
 }
 
 # CAST AI Omni Agent Helm Release
@@ -159,7 +195,7 @@ resource "castai_omni_cluster" "this" {
     pod_cidr           = join(",", local.pod_cidrs)
   }
 
-  depends_on = [helm_release.omni_agent]
+  depends_on = [helm_release.omni_agent, module.omni_connect]
 }
 
 # ConfigMap with helm values for GitOps (when skip_helm = true)
@@ -171,11 +207,19 @@ resource "kubernetes_config_map_v1" "helm_values" {
     namespace = local.omni_namespace
   }
 
-  data = {
-    "omni-agent.repository" = local.castai_helm_repository
-    "omni-agent.chart"      = local.omni_agent_chart
-    "values.yaml"           = yamlencode(local.helm_yaml_values)
-  }
+  data = merge(
+    {
+      "omni-agent.repository" = local.castai_helm_repository
+      "omni-agent.chart"      = local.omni_agent_chart
+      "values.yaml"           = yamlencode(local.helm_yaml_values)
+    },
+    var.install_omni_connect ? {
+      "omni-connect.repository"  = module.omni_connect[0].chart.repository
+      "omni-connect.chart"       = module.omni_connect[0].chart.name
+      "omni-connect.version"     = module.omni_connect[0].chart.version
+      "omni-connect-values.yaml" = yamlencode(module.omni_connect[0].helm_values)
+    } : {},
+  )
 
   depends_on = [kubernetes_namespace_v1.omni]
 }

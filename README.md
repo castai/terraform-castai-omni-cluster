@@ -44,6 +44,31 @@ This module creates the necessary Kubernetes resources for CAST AI Omni:
 
 **Note**: When `skip_helm = true`, the module creates only the namespace, secret, ConfigMap, and CAST AI Omni cluster resource, allowing you to manage the Helm chart installation via GitOps tools like ArgoCD or Flux.
 
+## Optional self-hosted Omni-Connect installation
+
+Set `install_omni_connect = true` to also install the self-hosted Omni-Connect control plane and its CRDs. This option defaults to `false`, so existing module configurations do not change. Chart and agent images are explicitly required when enabling the feature. EKS uses virtual nodes by default; GKE and AKS do not inherit EKS-only settings.
+
+```hcl
+install_omni_connect = true
+omni_connect = {
+  chart = {
+    repository = "oci://<chart-registry>"
+    version    = "<chart-version>"
+    cluster_agent_image = {
+      repository = "<registry>/omni-cluster-agent"
+      tag        = "<compatible-tag>"
+    }
+    node_agent_image = {
+      repository = "<registry>/omni-node-agent"
+      tag        = "<compatible-tag>"
+    }
+  }
+  virtual_nodes = true  # EKS default; override only with correctly routed fabric CIDRs
+}
+```
+
+When `skip_helm = true`, the module does not install the release. Instead, the existing GitOps ConfigMap additionally includes `omni-connect.repository`, `omni-connect.chart`, `omni-connect.version`, and `omni-connect-values.yaml` when this option is enabled. These keys are absent when it is disabled.
+
 ## Usage
 
 ### Complete GKE Example
@@ -519,7 +544,7 @@ MIT
 
 | Name | Version |
 |------|---------|
-| <a name="provider_castai"></a> [castai](#provider\_castai) | 9.20.0 |
+| <a name="provider_castai"></a> [castai](#provider\_castai) | 9.23.0 |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.3.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.5.0 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
@@ -531,6 +556,7 @@ MIT
 | <a name="module_liqo_helm_values_aks"></a> [liqo\_helm\_values\_aks](#module\_liqo\_helm\_values\_aks) | ./modules/aks | n/a |
 | <a name="module_liqo_helm_values_eks"></a> [liqo\_helm\_values\_eks](#module\_liqo\_helm\_values\_eks) | ./modules/eks | n/a |
 | <a name="module_liqo_helm_values_gke"></a> [liqo\_helm\_values\_gke](#module\_liqo\_helm\_values\_gke) | ./modules/gke | n/a |
+| <a name="module_omni_connect"></a> [omni\_connect](#module\_omni\_connect) | ./modules/omni-connect | n/a |
 
 ## Resources
 
@@ -542,6 +568,7 @@ MIT
 | [kubernetes_labels.castai_agent_ns_offloading_label](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/labels) | resource |
 | [kubernetes_namespace_v1.omni](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace_v1) | resource |
 | [kubernetes_secret_v1.api_token](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret_v1) | resource |
+| [terraform_data.omni_connect_configuration](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 | [terraform_data.pod_cidr_validation](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
 ## Inputs
@@ -555,6 +582,7 @@ MIT
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | CAST AI cluster name | `string` | n/a | yes |
 | <a name="input_cluster_region"></a> [cluster\_region](#input\_cluster\_region) | Not used. This variable is kept for backwards compatibility, will be removed in the future. | `string` | `""` | no |
 | <a name="input_cluster_zone"></a> [cluster\_zone](#input\_cluster\_zone) | Not used. This variable is kept for backwards compatibility, will be removed in the future. | `string` | `""` | no |
+| <a name="input_install_omni_connect"></a> [install\_omni\_connect](#input\_install\_omni\_connect) | Install Omni-Connect and its self-hosted control plane in the existing castai-omni namespace | `bool` | `false` | no |
 | <a name="input_ipam_external_cidr"></a> [ipam\_external\_cidr](#input\_ipam\_external\_cidr) | Override Liqo IPAM externalCIDR. If not set, it will be allocated automatically by Liqo | `string` | `null` | no |
 | <a name="input_ipam_internal_cidr"></a> [ipam\_internal\_cidr](#input\_ipam\_internal\_cidr) | Override Liqo IPAM internalCIDR. If not set, it will be allocated automatically by Liqo | `string` | `null` | no |
 | <a name="input_ipam_pools"></a> [ipam\_pools](#input\_ipam\_pools) | Override Liqo IPAM network pools. If not set, defaults to private address space (RFC 1918) | `list(string)` | `null` | no |
@@ -563,6 +591,7 @@ MIT
 | <a name="input_loadbalancer_provider"></a> [loadbalancer\_provider](#input\_loadbalancer\_provider) | LoadBalancer provider for edge cluster (accepted values are `nlb` and `external` for EKS, `gke` for GKE and `aks` for AKS). If empty, it will be defaulted to `external` for EKS, `gke` for GKE and `aks` for AKS | `string` | `null` | no |
 | <a name="input_omni_agent_chart_version"></a> [omni\_agent\_chart\_version](#input\_omni\_agent\_chart\_version) | OMNI agent helm chart version | `string` | `"1.19.16"` | no |
 | <a name="input_omni_agent_helm_values"></a> [omni\_agent\_helm\_values](#input\_omni\_agent\_helm\_values) | Override values for the omni-agent Helm release. When provided, these values are merged with the default computed values, with these taking precedence. Accepts any valid Helm values map. | `any` | `null` | no |
+| <a name="input_omni_connect"></a> [omni\_connect](#input\_omni\_connect) | Omni-Connect chart and networking configuration, required when install\_omni\_connect is true | <pre>object({<br/>    chart = object({<br/>      repository          = string<br/>      name                = optional(string, "omni-connect")<br/>      version             = string<br/>      cluster_agent_image = object({ repository = string, tag = string })<br/>      node_agent_image    = object({ repository = string, tag = string })<br/>    })<br/>    public_url       = optional(string)<br/>    cidr             = optional(string, "100.127.0.0/16")<br/>    cloud_cidrs      = optional(list(string), [])<br/>    storage_provider = optional(string)<br/>    virtual_nodes    = optional(bool)<br/>    kubelet_aws = optional(object({<br/>      node_role_arn   = optional(string)<br/>      cluster_name    = optional(string)<br/>      username_prefix = optional(string)<br/>      serving_signer  = optional(string)<br/>      rbac_group      = optional(string)<br/>      node_identity   = optional(bool, false)<br/>    }))<br/>    helm_values = optional(any)<br/>  })</pre> | `null` | no |
 | <a name="input_organization_id"></a> [organization\_id](#input\_organization\_id) | CAST AI organization ID | `string` | n/a | yes |
 | <a name="input_pod_cidr"></a> [pod\_cidr](#input\_pod\_cidr) | DEPRECATED: Please use 'pod\_cidrs' instead. Pod CIDR for network configuration | `string` | `null` | no |
 | <a name="input_pod_cidrs"></a> [pod\_cidrs](#input\_pod\_cidrs) | List of Pod CIDRs for network configuration. | `list(string)` | `null` | no |
@@ -576,5 +605,7 @@ MIT
 | Name | Description |
 |------|-------------|
 | <a name="output_cluster_id"></a> [cluster\_id](#output\_cluster\_id) | Cluster ID of the Omni-enabled cluster |
+| <a name="output_omni_connect_enabled"></a> [omni\_connect\_enabled](#output\_omni\_connect\_enabled) | Whether the optional Omni-Connect control plane is enabled |
+| <a name="output_omni_connect_release"></a> [omni\_connect\_release](#output\_omni\_connect\_release) | Direct Helm release metadata for Omni-Connect, or null in GitOps/disabled mode |
 | <a name="output_organization_id"></a> [organization\_id](#output\_organization\_id) | Organization ID of the Omni-enabled cluster |
 <!-- END_TF_DOCS -->

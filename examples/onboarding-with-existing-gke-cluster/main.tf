@@ -48,6 +48,9 @@ module "castai_omni_cluster" {
   reserved_subnet_cidrs = [data.google_compute_subnetwork.gke_subnet.ip_cidr_range]
 
   skip_helm = var.skip_helm
+
+  install_omni_connect = var.install_omni_connect
+  omni_connect         = var.omni_connect
 }
 
 module "castai_omni_edge_location_gcp" {
