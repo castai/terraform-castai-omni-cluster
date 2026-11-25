@@ -139,6 +139,30 @@ run "enabled_eks" {
     condition     = castai_omni_cluster.this.status.omni_agent_version == null
     error_message = "OMNI_CONNECT onboarding must not send omni_agent_version"
   }
+
+  assert {
+    condition     = output.omni_connect_release.namespace == "castai-agent"
+    error_message = "Omni-Connect must use the standard CAST AI component namespace by default"
+  }
+}
+
+run "enabled_custom_namespace" {
+  command = plan
+
+  variables {
+    install_omni_connect = true
+    namespace            = "platform-omni"
+  }
+
+  assert {
+    condition     = kubernetes_namespace_v1.omni.metadata[0].name == "platform-omni"
+    error_message = "The configured namespace must be used for the Omni-Connect resources"
+  }
+
+  assert {
+    condition     = output.omni_connect_release.namespace == "platform-omni"
+    error_message = "The configured namespace must be returned with the Omni-Connect release"
+  }
 }
 
 run "enabled_gke" {

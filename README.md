@@ -36,7 +36,7 @@ This Terraform module enables CAST AI Omni functionality for a Kubernetes cluste
 
 This module creates the necessary Kubernetes resources for CAST AI Omni:
 
-1. **Kubernetes Namespace** (`castai-omni`) - Dedicated namespace for CAST AI Omni components
+1. **Kubernetes Namespace** (`castai-agent` by default, configurable with `namespace`) - Namespace for CAST AI components
 2. **Kubernetes Secret** - Contains the CAST AI API token for agent authentication
 3. **CAST AI Omni Cluster Resource** - Enables Omni functionality in CAST AI
 4. **CAST AI Omni Agent Helm Chart** (optional, skippable with `skip_helm = true`) - Manages cluster connectivity and operations
@@ -234,7 +234,7 @@ module "castai_omni_cluster" {
 }
 ```
 
-When `skip_helm = true`, the module creates a ConfigMap named `castai-omni-helm-values` in the `castai-omni` namespace containing:
+When `skip_helm = true`, the module creates a ConfigMap named `castai-omni-helm-values` in the configured `namespace` (default `castai-agent`) containing:
 - `liqo.version`: The Liqo image tag to use
 - `omni-agent.repository`: CAST AI Helm repository URL
 - `omni-agent.chart`: CAST AI Omni Agent chart name
@@ -499,14 +499,14 @@ The module includes cloud-specific submodules for optimal Liqo configuration:
 
 The module ensures proper installation order by:
 
-1. **Namespace and Secret Creation** - Creates the `castai-omni` namespace and API token secret
+1. **Namespace and Secret Creation** - Creates the configured namespace (default `castai-agent`) and API token secret
 2. **CAST AI Omni Cluster** - Enables Omni functionality in CAST AI
 3. **CAST AI Omni Agent Installation** (when `skip_helm = false`, default):
    - Installs the CAST AI Omni Agent Helm chart with the configured values
    - The agent manages cluster connectivity and operations
 
 **When `skip_helm = true` (GitOps mode)**:
-- Step 3 is skipped, and instead a ConfigMap (`castai-omni-helm-values`) is created
+- Step 3 is skipped, and instead a ConfigMap (`castai-omni-helm-values`) is created in the configured namespace
 - The ConfigMap contains all necessary Helm values for manual or GitOps-based deployment
 - You are responsible for installing the CAST AI Omni Agent Helm chart using your preferred deployment method
 
@@ -591,6 +591,7 @@ MIT
 | <a name="input_k8s_provider"></a> [k8s\_provider](#input\_k8s\_provider) | Kubernetes cloud provider (gke, eks, aks) | `string` | n/a | yes |
 | <a name="input_kvisor_grpc_url"></a> [kvisor\_grpc\_url](#input\_kvisor\_grpc\_url) | Kvisor gRPC URL | `string` | `"kvisor.prod-master.cast.ai:443"` | no |
 | <a name="input_loadbalancer_provider"></a> [loadbalancer\_provider](#input\_loadbalancer\_provider) | LoadBalancer provider for edge cluster (accepted values are `nlb` and `external` for EKS, `gke` for GKE and `aks` for AKS). If empty, it will be defaulted to `external` for EKS, `gke` for GKE and `aks` for AKS | `string` | `null` | no |
+| <a name="input_namespace"></a> [namespace](#input\_namespace) | Kubernetes namespace used for CAST AI components | `string` | `"castai-agent"` | no |
 | <a name="input_omni_agent_chart_version"></a> [omni\_agent\_chart\_version](#input\_omni\_agent\_chart\_version) | OMNI agent helm chart version | `string` | `"1.19.16"` | no |
 | <a name="input_omni_agent_helm_values"></a> [omni\_agent\_helm\_values](#input\_omni\_agent\_helm\_values) | Override values for the omni-agent Helm release. When provided, these values are merged with the default computed values, with these taking precedence. Accepts any valid Helm values map. | `any` | `null` | no |
 | <a name="input_omni_connect"></a> [omni\_connect](#input\_omni\_connect) | Omni-Connect chart and networking configuration, required when install\_omni\_connect is true | <pre>object({<br/>    chart = object({<br/>      repository          = string<br/>      name                = optional(string, "omni-connect")<br/>      version             = string<br/>      cluster_agent_image = object({ repository = string, tag = string })<br/>      node_agent_image    = object({ repository = string, tag = string })<br/>    })<br/>    public_url       = optional(string)<br/>    cidr             = optional(string, "100.127.0.0/16")<br/>    cloud_cidrs      = optional(list(string), [])<br/>    storage_provider = optional(string)<br/>    virtual_nodes    = optional(bool)<br/>    kubelet_aws = optional(object({<br/>      node_role_arn   = optional(string)<br/>      cluster_name    = optional(string)<br/>      username_prefix = optional(string)<br/>      serving_signer  = optional(string)<br/>      rbac_group      = optional(string)<br/>      node_identity   = optional(bool, false)<br/>    }))<br/>    service = optional(object({<br/>      type        = optional(string)<br/>      annotations = optional(map(string))<br/>    }))<br/>    helm_values = optional(any)<br/>  })</pre> | `null` | no |

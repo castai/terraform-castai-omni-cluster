@@ -130,6 +130,17 @@ variable "cluster_zone" {
   default     = ""
 }
 
+variable "namespace" {
+  description = "Kubernetes namespace used for CAST AI components"
+  type        = string
+  default     = "castai-agent"
+
+  validation {
+    condition     = trimspace(var.namespace) != ""
+    error_message = "The namespace must not be empty."
+  }
+}
+
 variable "install_omni_connect" {
   description = "Install Omni-Connect and its self-hosted control plane instead of omni-agent and register the cluster with OMNI_CONNECT"
   type        = bool

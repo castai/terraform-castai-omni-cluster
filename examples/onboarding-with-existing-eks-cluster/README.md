@@ -1,6 +1,6 @@
 # Onboarding an existing EKS cluster
 
-This example installs the existing Omni/Liqo resources and can optionally deploy the self-hosted Omni-Connect control plane in `castai-omni`.
+This example installs the existing Omni/Liqo resources and can optionally deploy the self-hosted Omni-Connect control plane in `castai-agent` (configurable with `namespace`).
 
 ## Optional Omni-Connect
 
@@ -37,11 +37,11 @@ apiVersion: omni.cast.ai/v1alpha1
 kind: OmninetJoinRequest
 metadata:
   name: onboarding-smoke-check
-  namespace: castai-omni
+  namespace: castai-agent
 spec:
   ttl: 10m
 EOF
-kubectl -n castai-omni get omninetjoinrequest onboarding-smoke-check --watch
+kubectl -n castai-agent get omninetjoinrequest onboarding-smoke-check --watch
 ```
 
-The request must reach `Ready`. Delete it afterward with `kubectl -n castai-omni delete omninetjoinrequest onboarding-smoke-check`. This check creates no VM or autoscaling workflow.
+The request must reach `Ready`. Delete it afterward with `kubectl -n castai-agent delete omninetjoinrequest onboarding-smoke-check`. This check creates no VM or autoscaling workflow.

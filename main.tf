@@ -71,7 +71,7 @@ module "liqo_helm_values_aks" {
 }
 
 locals {
-  omni_namespace          = "castai-omni"
+  omni_namespace          = var.namespace
   omni_agent_release      = "castai-omni-agent"
   omni_agent_chart        = "omni-agent"
   castai_helm_repository  = "https://castai.github.io/helm-charts"
