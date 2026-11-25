@@ -172,7 +172,7 @@ module "omni_connect" {
 
 # CAST AI Omni Agent Helm Release
 resource "helm_release" "omni_agent" {
-  count = var.skip_helm ? 0 : 1
+  count = var.skip_helm || var.install_omni_connect ? 0 : 1
 
   name             = local.omni_agent_release
   repository       = local.castai_helm_repository
@@ -197,7 +197,8 @@ resource "castai_omni_cluster" "this" {
   organization_id = var.organization_id
 
   status = {
-    omni_agent_version = var.omni_agent_chart_version
+    provisioning_mode  = var.install_omni_connect ? "OMNI_CONNECT" : "OMNI_AGENT"
+    omni_agent_version = var.install_omni_connect ? null : var.omni_agent_chart_version
     pod_cidr           = join(",", local.pod_cidrs)
   }
 
@@ -214,7 +215,7 @@ resource "kubernetes_config_map_v1" "helm_values" {
   }
 
   data = merge(
-    {
+    var.install_omni_connect ? {} : {
       "omni-agent.repository" = local.castai_helm_repository
       "omni-agent.chart"      = local.omni_agent_chart
       "values.yaml"           = yamlencode(local.helm_yaml_values)
@@ -234,6 +235,7 @@ resource "kubernetes_config_map_v1" "helm_values" {
 }
 
 resource "kubernetes_labels" "castai_agent_ns_offloading_label" {
+  count       = var.install_omni_connect ? 0 : 1
   api_version = "v1"
   kind        = "Namespace"
 

@@ -44,6 +44,21 @@ run "disabled_by_default" {
     condition     = output.omni_connect_release == null
     error_message = "Disabled configuration must not return a Helm release"
   }
+
+  assert {
+    condition     = length(helm_release.omni_agent) == 1
+    error_message = "The default configuration must preserve the omni-agent Helm release"
+  }
+
+  assert {
+    condition     = castai_omni_cluster.this.status.provisioning_mode == "OMNI_AGENT"
+    error_message = "The default configuration must register OMNI_AGENT"
+  }
+
+  assert {
+    condition     = castai_omni_cluster.this.status.omni_agent_version == var.omni_agent_chart_version
+    error_message = "The default configuration must preserve omni_agent_version"
+  }
 }
 
 run "disabled_gitops" {
@@ -56,6 +71,15 @@ run "disabled_gitops" {
   assert {
     condition     = !contains(keys(kubernetes_config_map_v1.helm_values[0].data), "omni-connect.chart")
     error_message = "The GitOps ConfigMap must remain unchanged when Omni-Connect is disabled"
+  }
+
+  assert {
+    condition = (
+      contains(keys(kubernetes_config_map_v1.helm_values[0].data), "omni-agent.repository") &&
+      contains(keys(kubernetes_config_map_v1.helm_values[0].data), "omni-agent.chart") &&
+      contains(keys(kubernetes_config_map_v1.helm_values[0].data), "values.yaml")
+    )
+    error_message = "The GitOps ConfigMap must preserve all omni-agent entries when Omni-Connect is disabled"
   }
 }
 
@@ -94,6 +118,26 @@ run "enabled_eks" {
   assert {
     condition     = output.omni_connect_release.name == "castai-omni-connect"
     error_message = "Deployment without skip_helm must create the Omni-Connect release"
+  }
+
+  assert {
+    condition     = length(helm_release.omni_agent) == 0
+    error_message = "OMNI_CONNECT must not install omni-agent concurrently"
+  }
+
+  assert {
+    condition     = length(kubernetes_labels.castai_agent_ns_offloading_label) == 0
+    error_message = "OMNI_CONNECT must not create omni-agent-only namespace labels"
+  }
+
+  assert {
+    condition     = castai_omni_cluster.this.status.provisioning_mode == "OMNI_CONNECT"
+    error_message = "OMNI_CONNECT onboarding must register the correct provisioning mode"
+  }
+
+  assert {
+    condition     = castai_omni_cluster.this.status.omni_agent_version == null
+    error_message = "OMNI_CONNECT onboarding must not send omni_agent_version"
   }
 }
 
@@ -146,6 +190,15 @@ run "enabled_gitops" {
   assert {
     condition     = output.omni_connect_release == null
     error_message = "GitOps mode must not create a direct Helm release"
+  }
+
+  assert {
+    condition = (
+      !contains(keys(kubernetes_config_map_v1.helm_values[0].data), "omni-agent.repository") &&
+      !contains(keys(kubernetes_config_map_v1.helm_values[0].data), "omni-agent.chart") &&
+      !contains(keys(kubernetes_config_map_v1.helm_values[0].data), "values.yaml")
+    )
+    error_message = "OMNI_CONNECT GitOps output must not contain omni-agent settings"
   }
 
   assert {
