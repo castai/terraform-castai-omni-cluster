@@ -71,7 +71,7 @@ module "liqo_helm_values_aks" {
 }
 
 locals {
-  omni_namespace          = "castai-omni"
+  omni_namespace          = var.namespace
   omni_agent_release      = "castai-omni-agent"
   omni_agent_chart        = "omni-agent"
   castai_helm_repository  = "https://castai.github.io/helm-charts"
@@ -108,6 +108,32 @@ locals {
   }
 }
 
+resource "terraform_data" "omni_connect_configuration" {
+  count = var.install_omni_connect ? 1 : 0
+
+  lifecycle {
+    precondition {
+      condition = var.omni_connect != null && alltrue([
+        for value in [
+          var.omni_connect.chart.repository,
+          var.omni_connect.chart.version,
+          var.omni_connect.chart.cluster_agent_image.repository,
+          var.omni_connect.chart.cluster_agent_image.tag,
+          var.omni_connect.chart.node_agent_image.repository,
+          var.omni_connect.chart.node_agent_image.tag,
+        ] : trimspace(value) != ""
+      ])
+      error_message = "When install_omni_connect is true, omni_connect and its chart repository/version and both agent image repositories/tags must be provided and non-empty."
+    }
+
+    precondition {
+      condition     = try(var.omni_connect.kubelet_aws, null) == null || try(trimspace(var.omni_connect.kubelet_aws.node_role_arn), "") != ""
+      error_message = "On EKS, omni_connect.kubelet_aws.node_role_arn must not be empty when this block is supplied."
+    }
+
+  }
+}
+
 resource "kubernetes_namespace_v1" "omni" {
   metadata {
     name = local.omni_namespace
@@ -128,9 +154,25 @@ resource "kubernetes_secret_v1" "api_token" {
   depends_on = [kubernetes_namespace_v1.omni]
 }
 
+module "omni_connect" {
+  count  = var.install_omni_connect ? 1 : 0
+  source = "./modules/omni-connect"
+
+  k8s_provider     = var.k8s_provider
+  namespace        = local.omni_namespace
+  storage_provider = local.storage_provider
+  skip_helm        = var.skip_helm
+  omni_connect     = var.omni_connect
+
+  depends_on = [
+    kubernetes_namespace_v1.omni,
+    terraform_data.omni_connect_configuration,
+  ]
+}
+
 # CAST AI Omni Agent Helm Release
 resource "helm_release" "omni_agent" {
-  count = var.skip_helm ? 0 : 1
+  count = var.skip_helm || var.install_omni_connect ? 0 : 1
 
   name             = local.omni_agent_release
   repository       = local.castai_helm_repository
@@ -155,11 +197,12 @@ resource "castai_omni_cluster" "this" {
   organization_id = var.organization_id
 
   status = {
-    omni_agent_version = var.omni_agent_chart_version
+    provisioning_mode  = var.install_omni_connect ? "OMNI_CONNECT" : "OMNI_AGENT"
+    omni_agent_version = var.install_omni_connect ? null : var.omni_agent_chart_version
     pod_cidr           = join(",", local.pod_cidrs)
   }
 
-  depends_on = [helm_release.omni_agent]
+  depends_on = [helm_release.omni_agent, module.omni_connect]
 }
 
 # ConfigMap with helm values for GitOps (when skip_helm = true)
@@ -171,16 +214,28 @@ resource "kubernetes_config_map_v1" "helm_values" {
     namespace = local.omni_namespace
   }
 
-  data = {
-    "omni-agent.repository" = local.castai_helm_repository
-    "omni-agent.chart"      = local.omni_agent_chart
-    "values.yaml"           = yamlencode(local.helm_yaml_values)
-  }
+  data = merge(
+    var.install_omni_connect ? {} : {
+      "omni-agent.repository" = local.castai_helm_repository
+      "omni-agent.chart"      = local.omni_agent_chart
+      "values.yaml"           = yamlencode(local.helm_yaml_values)
+    },
+    var.install_omni_connect ? {
+      "omni-connect.repository"  = module.omni_connect[0].chart.repository
+      "omni-connect.chart"       = module.omni_connect[0].chart.name
+      "omni-connect.version"     = module.omni_connect[0].chart.version
+      "omni-connect-values.yaml" = yamlencode(module.omni_connect[0].helm_values)
+    } : {},
+    var.install_omni_connect && module.omni_connect[0].overrides != null ? {
+      "omni-connect-overrides.yaml" = yamlencode(module.omni_connect[0].overrides)
+    } : {},
+  )
 
   depends_on = [kubernetes_namespace_v1.omni]
 }
 
 resource "kubernetes_labels" "castai_agent_ns_offloading_label" {
+  count       = var.install_omni_connect ? 0 : 1
   api_version = "v1"
   kind        = "Namespace"
 

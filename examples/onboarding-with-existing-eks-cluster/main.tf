@@ -34,6 +34,9 @@ module "castai_omni_cluster" {
   loadbalancer_provider = var.loadbalancer_provider
 
   skip_helm = var.skip_helm
+
+  install_omni_connect = var.install_omni_connect
+  omni_connect         = var.omni_connect
 }
 
 module "castai_omni_edge_location_aws" {

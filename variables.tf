@@ -129,3 +129,52 @@ variable "cluster_zone" {
   type        = string
   default     = ""
 }
+
+variable "namespace" {
+  description = "Kubernetes namespace used for CAST AI components"
+  type        = string
+  default     = "castai-agent"
+
+  validation {
+    condition     = trimspace(var.namespace) != ""
+    error_message = "The namespace must not be empty."
+  }
+}
+
+variable "install_omni_connect" {
+  description = "Install Omni-Connect and its self-hosted control plane instead of omni-agent and register the cluster with OMNI_CONNECT"
+  type        = bool
+  default     = false
+}
+
+variable "omni_connect" {
+  description = "Omni-Connect chart and networking configuration, required when install_omni_connect is true"
+  type = object({
+    chart = object({
+      repository          = string
+      name                = optional(string, "omni-connect")
+      version             = string
+      cluster_agent_image = object({ repository = string, tag = string })
+      node_agent_image    = object({ repository = string, tag = string })
+    })
+    public_url       = optional(string)
+    cidr             = optional(string, "100.127.0.0/16")
+    cloud_cidrs      = optional(list(string), [])
+    storage_provider = optional(string)
+    virtual_nodes    = optional(bool)
+    kubelet_aws = optional(object({
+      node_role_arn   = optional(string)
+      cluster_name    = optional(string)
+      username_prefix = optional(string)
+      serving_signer  = optional(string)
+      rbac_group      = optional(string)
+      node_identity   = optional(bool, false)
+    }))
+    service = optional(object({
+      type        = optional(string)
+      annotations = optional(map(string))
+    }))
+    helm_values = optional(any)
+  })
+  default = null
+}
