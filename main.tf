@@ -197,7 +197,7 @@ resource "castai_omni_cluster" "this" {
   organization_id = var.organization_id
 
   status = {
-    provisioning_mode  = var.install_omni_connect ? "OMNI_CONNECT" : "OMNI_AGENT"
+    provisioning_mode  = var.install_omni_connect ? "NATIVE" : "VIRTUALNODE"
     omni_agent_version = var.install_omni_connect ? null : var.omni_agent_chart_version
     pod_cidr           = join(",", local.pod_cidrs)
   }

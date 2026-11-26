@@ -142,7 +142,7 @@ variable "namespace" {
 }
 
 variable "install_omni_connect" {
-  description = "Install Omni-Connect and its self-hosted control plane instead of omni-agent and register the cluster with OMNI_CONNECT"
+  description = "Install Omni-Connect and its self-hosted control plane instead of omni-agent and register the cluster with NATIVE"
   type        = bool
   default     = false
 }

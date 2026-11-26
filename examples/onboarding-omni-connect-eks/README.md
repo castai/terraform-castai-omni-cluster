@@ -2,7 +2,7 @@
 
 This example installs **only omni-connect** and its self-hosted control plane on an existing EKS cluster. It does not install omni-agent, Liqo, an EdgeCluster, or an edge-location module.
 
-The module registers the cluster with `provisioning_mode = "OMNI_CONNECT"` and omits `omni_agent_version`. The standard CAST AI namespace (`castai-agent`) is used by default and can be overridden with `namespace`.
+The module registers the cluster with `provisioning_mode = "NATIVE"` and omits `omni_agent_version`. The standard CAST AI namespace (`castai-agent`) is used by default and can be overridden with `namespace`.
 
 ## Configure and run
 

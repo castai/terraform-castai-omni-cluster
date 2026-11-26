@@ -46,7 +46,7 @@ This module creates the necessary Kubernetes resources for CAST AI Omni:
 
 ## Optional self-hosted Omni-Connect installation
 
-Set `install_omni_connect = true` to install the self-hosted Omni-Connect control plane and its CRDs **instead of omni-agent**. Omni-Agent and Omni-Connect are mutually exclusive. In this mode the module registers the cluster with `provisioning_mode = "OMNI_CONNECT"`, does not send `omni_agent_version`, and emits no omni-agent Helm or GitOps entries. This option defaults to `false`, preserving existing module configurations and `OMNI_AGENT` registration. Chart and agent images are explicitly required when enabling the feature. EKS uses virtual nodes by default; GKE and AKS do not inherit EKS-only settings.
+Set `install_omni_connect = true` to install the self-hosted Omni-Connect control plane and its CRDs **instead of omni-agent**. Omni-Agent and Omni-Connect are mutually exclusive. In this mode the module registers the cluster with `provisioning_mode = "NATIVE"`, does not send `omni_agent_version`, and emits no omni-agent Helm or GitOps entries. This option defaults to `false`, preserving existing module configurations and `VIRTUALNODE` registration. Chart and agent images are explicitly required when enabling the feature. EKS uses virtual nodes by default; GKE and AKS do not inherit EKS-only settings.
 
 ```hcl
 install_omni_connect = true

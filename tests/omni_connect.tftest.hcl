@@ -51,8 +51,8 @@ run "disabled_by_default" {
   }
 
   assert {
-    condition     = castai_omni_cluster.this.status.provisioning_mode == "OMNI_AGENT"
-    error_message = "The default configuration must register OMNI_AGENT"
+    condition     = castai_omni_cluster.this.status.provisioning_mode == "VIRTUALNODE"
+    error_message = "The default configuration must register VIRTUALNODE"
   }
 
   assert {
@@ -122,22 +122,22 @@ run "enabled_eks" {
 
   assert {
     condition     = length(helm_release.omni_agent) == 0
-    error_message = "OMNI_CONNECT must not install omni-agent concurrently"
+    error_message = "NATIVE onboarding must not install omni-agent concurrently"
   }
 
   assert {
     condition     = length(kubernetes_labels.castai_agent_ns_offloading_label) == 0
-    error_message = "OMNI_CONNECT must not create omni-agent-only namespace labels"
+    error_message = "NATIVE onboarding must not create omni-agent-only namespace labels"
   }
 
   assert {
-    condition     = castai_omni_cluster.this.status.provisioning_mode == "OMNI_CONNECT"
-    error_message = "OMNI_CONNECT onboarding must register the correct provisioning mode"
+    condition     = castai_omni_cluster.this.status.provisioning_mode == "NATIVE"
+    error_message = "NATIVE onboarding must register the correct provisioning mode"
   }
 
   assert {
     condition     = castai_omni_cluster.this.status.omni_agent_version == null
-    error_message = "OMNI_CONNECT onboarding must not send omni_agent_version"
+    error_message = "NATIVE onboarding must not send omni_agent_version"
   }
 
   assert {
@@ -222,7 +222,7 @@ run "enabled_gitops" {
       !contains(keys(kubernetes_config_map_v1.helm_values[0].data), "omni-agent.chart") &&
       !contains(keys(kubernetes_config_map_v1.helm_values[0].data), "values.yaml")
     )
-    error_message = "OMNI_CONNECT GitOps output must not contain omni-agent settings"
+    error_message = "NATIVE GitOps output must not contain omni-agent settings"
   }
 
   assert {

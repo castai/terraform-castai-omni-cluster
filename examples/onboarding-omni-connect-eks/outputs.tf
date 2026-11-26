@@ -1,5 +1,5 @@
 output "cluster_id" {
-  description = "CAST AI cluster ID registered with OMNI_CONNECT"
+  description = "CAST AI cluster ID registered with NATIVE"
   value       = module.castai_omni_cluster.cluster_id
 }
 
