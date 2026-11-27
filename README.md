@@ -46,7 +46,7 @@ This module creates the necessary Kubernetes resources for CAST AI Omni:
 
 ## Optional self-hosted Omni-Connect installation
 
-Set `install_omni_connect = true` to install the self-hosted Omni-Connect control plane and its CRDs **instead of omni-agent**. Omni-Agent and Omni-Connect are mutually exclusive. In this mode the module registers the cluster with `provisioning_mode = "OMNI_CONNECT"`, does not send `omni_agent_version`, and emits no omni-agent Helm or GitOps entries. This option defaults to `false`, preserving existing module configurations and `OMNI_AGENT` registration. Chart and agent images are explicitly required when enabling the feature. EKS uses virtual nodes by default; GKE and AKS do not inherit EKS-only settings.
+Set `install_omni_connect = true` to install the self-hosted Omni-Connect control plane and its CRDs **instead of omni-agent**. Omni-Agent and Omni-Connect are mutually exclusive. In this mode the module registers the cluster with `provisioning_mode = "NATIVE"`, does not send `omni_agent_version`, and emits no omni-agent Helm or GitOps entries. This option defaults to `false`, preserving existing module configurations and `VIRTUALNODE` registration. Chart and agent images are explicitly required when enabling the feature. EKS uses virtual nodes by default; GKE and AKS do not inherit EKS-only settings.
 
 ```hcl
 install_omni_connect = true
@@ -546,7 +546,7 @@ MIT
 
 | Name | Version |
 |------|---------|
-| <a name="provider_castai"></a> [castai](#provider\_castai) | 9.23.0 |
+| <a name="provider_castai"></a> [castai](#provider\_castai) | 9.24.0 |
 | <a name="provider_helm"></a> [helm](#provider\_helm) | 3.3.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.5.0 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
@@ -584,7 +584,7 @@ MIT
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | CAST AI cluster name | `string` | n/a | yes |
 | <a name="input_cluster_region"></a> [cluster\_region](#input\_cluster\_region) | Not used. This variable is kept for backwards compatibility, will be removed in the future. | `string` | `""` | no |
 | <a name="input_cluster_zone"></a> [cluster\_zone](#input\_cluster\_zone) | Not used. This variable is kept for backwards compatibility, will be removed in the future. | `string` | `""` | no |
-| <a name="input_install_omni_connect"></a> [install\_omni\_connect](#input\_install\_omni\_connect) | Install Omni-Connect and its self-hosted control plane instead of omni-agent and register the cluster with OMNI\_CONNECT | `bool` | `false` | no |
+| <a name="input_install_omni_connect"></a> [install\_omni\_connect](#input\_install\_omni\_connect) | Install Omni-Connect and its self-hosted control plane instead of omni-agent and register the cluster with NATIVE | `bool` | `false` | no |
 | <a name="input_ipam_external_cidr"></a> [ipam\_external\_cidr](#input\_ipam\_external\_cidr) | Override Liqo IPAM externalCIDR. If not set, it will be allocated automatically by Liqo | `string` | `null` | no |
 | <a name="input_ipam_internal_cidr"></a> [ipam\_internal\_cidr](#input\_ipam\_internal\_cidr) | Override Liqo IPAM internalCIDR. If not set, it will be allocated automatically by Liqo | `string` | `null` | no |
 | <a name="input_ipam_pools"></a> [ipam\_pools](#input\_ipam\_pools) | Override Liqo IPAM network pools. If not set, defaults to private address space (RFC 1918) | `list(string)` | `null` | no |
