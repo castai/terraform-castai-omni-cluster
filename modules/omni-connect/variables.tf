@@ -25,6 +25,23 @@ variable "skip_helm" {
   default     = false
 }
 
+variable "castai" {
+  description = "Cast AI API settings for backend-labelled join commands. api_key is passed to the chart for a dedicated Secret instead of referencing an existing Secret."
+  type = object({
+    api_url         = string
+    organization_id = string
+    cluster_id      = string
+    api_key         = string
+  })
+  default   = null
+  sensitive = true
+
+  validation {
+    condition     = var.castai == null || alltrue([for value in [var.castai.api_key, var.castai.api_url, var.castai.organization_id, var.castai.cluster_id] : trimspace(value) != ""])
+    error_message = "castai.api_key, castai.api_url, castai.organization_id and castai.cluster_id must not be empty when Cast AI is configured."
+  }
+}
+
 variable "omni_connect" {
   description = "Omni-Connect chart, images, and networking configuration"
   type = object({

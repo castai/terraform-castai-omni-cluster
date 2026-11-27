@@ -19,47 +19,57 @@ locals {
   service_type        = try(var.omni_connect.service.type, null) != null ? var.omni_connect.service.type : "LoadBalancer"
   service_annotations = try(var.omni_connect.service.annotations, null) != null ? var.omni_connect.service.annotations : {}
 
-  helm_values = {
-    clusterAgent = {
-      image = {
-        repository = local.chart.cluster_agent_image.repository
-        tag        = local.chart.cluster_agent_image.tag
+  helm_values = merge(
+    var.castai == null ? {} : {
+      castai = {
+        apiUrl         = var.castai.api_url
+        organizationID = var.castai.organization_id
+        clusterID      = var.castai.cluster_id
+        apiKey         = var.castai.api_key
       }
+    },
+    {
+      clusterAgent = {
+        image = {
+          repository = local.chart.cluster_agent_image.repository
+          tag        = local.chart.cluster_agent_image.tag
+        }
+      }
+
+      controlPlane = merge(
+        {
+          publicURL = try(var.omni_connect.public_url, null) != null ? var.omni_connect.public_url : ""
+          service = {
+            type        = local.service_type
+            annotations = local.service_annotations
+          }
+        },
+        try(trimspace(local.storage_provider), "") == "" ? {} : {
+          postgres = {
+            persistence = {
+              storageClass = local.storage_provider
+            }
+          }
+        }
+      )
+
+      omninet = merge(
+        {
+          cidr                  = coalesce(try(var.omni_connect.cidr, null), "100.127.0.0/16")
+          virtualNodes          = local.virtual_nodes
+          kubeletProxyTokenAuth = var.k8s_provider == "eks"
+          nodeAgent = {
+            image = {
+              repository = local.chart.node_agent_image.repository
+              tag        = local.chart.node_agent_image.tag
+            }
+          }
+        },
+        length(local.cloud_cidrs) == 0 ? {} : { cloudCIDRs = join(",", local.cloud_cidrs) },
+        length(local.kubelet_aws_node_role) == 0 ? {} : { kubeletAWS = local.kubelet_aws_node_role }
+      )
     }
-
-    controlPlane = merge(
-      {
-        publicURL = try(var.omni_connect.public_url, null) != null ? var.omni_connect.public_url : ""
-        service = {
-          type        = local.service_type
-          annotations = local.service_annotations
-        }
-      },
-      try(trimspace(local.storage_provider), "") == "" ? {} : {
-        postgres = {
-          persistence = {
-            storageClass = local.storage_provider
-          }
-        }
-      }
-    )
-
-    omninet = merge(
-      {
-        cidr                  = coalesce(try(var.omni_connect.cidr, null), "100.127.0.0/16")
-        virtualNodes          = local.virtual_nodes
-        kubeletProxyTokenAuth = var.k8s_provider == "eks"
-        nodeAgent = {
-          image = {
-            repository = local.chart.node_agent_image.repository
-            tag        = local.chart.node_agent_image.tag
-          }
-        }
-      },
-      length(local.cloud_cidrs) == 0 ? {} : { cloudCIDRs = join(",", local.cloud_cidrs) },
-      length(local.kubelet_aws_node_role) == 0 ? {} : { kubeletAWS = local.kubelet_aws_node_role }
-    )
-  }
+  )
 
   values = concat(
     [yamlencode(local.helm_values)],

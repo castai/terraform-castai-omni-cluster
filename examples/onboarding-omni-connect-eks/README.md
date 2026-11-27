@@ -4,6 +4,8 @@ This example installs **only omni-connect** and its self-hosted control plane on
 
 The module registers the cluster with `provisioning_mode = "NATIVE"` and omits `omni_agent_version`. The standard CAST AI namespace (`castai-agent`) is used by default and can be overridden with `namespace`.
 
+For backend-labelled join requests, the module supplies the configured API URL, organization and cluster IDs, and `castai.apiKey`. The secret is supplied to the chart so Omni-Connect creates its own dedicated Secret rather than referencing another component's Secret. API token values are sensitive inputs and must not be logged or committed to source control.
+
 ## Configure and run
 
 Configure AWS and Kubernetes/Helm provider credentials for your existing EKS cluster, then supply the chart and both explicitly compatible images:

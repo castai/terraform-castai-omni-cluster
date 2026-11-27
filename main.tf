@@ -163,6 +163,12 @@ module "omni_connect" {
   storage_provider = local.storage_provider
   skip_helm        = var.skip_helm
   omni_connect     = var.omni_connect
+  castai = {
+    api_url         = var.api_url
+    organization_id = var.organization_id
+    cluster_id      = var.cluster_id
+    api_key         = var.api_token
+  }
 
   depends_on = [
     kubernetes_namespace_v1.omni,

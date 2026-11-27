@@ -101,6 +101,26 @@ run "enabled_eks" {
   }
 
   assert {
+    condition     = module.omni_connect[0].helm_values.castai.apiUrl == var.api_url
+    error_message = "Omni-Connect must receive the Cast AI API URL for backend-labelled join requests"
+  }
+
+  assert {
+    condition     = module.omni_connect[0].helm_values.castai.organizationID == var.organization_id && module.omni_connect[0].helm_values.castai.clusterID == var.cluster_id
+    error_message = "Omni-Connect must receive the organization and cluster identifiers"
+  }
+
+  assert {
+    condition     = module.omni_connect[0].helm_values.castai.apiKey == var.api_token
+    error_message = "The API key must be supplied so the chart can create its own Secret"
+  }
+
+  assert {
+    condition     = !contains(keys(module.omni_connect[0].helm_values.castai), "apiKeySecretRef")
+    error_message = "Omni-Connect must not reference the shared omni-agent Secret"
+  }
+
+  assert {
     condition     = module.omni_connect[0].helm_values.controlPlane.publicURL == "https://omni.example.com"
     error_message = "The configured public control-plane URL must be propagated"
   }
@@ -233,6 +253,21 @@ run "enabled_gitops" {
   assert {
     condition     = kubernetes_config_map_v1.helm_values[0].data["omni-connect.version"] == "0.1.0-test"
     error_message = "GitOps mode must export the explicitly selected chart version"
+  }
+
+  assert {
+    condition     = yamldecode(kubernetes_config_map_v1.helm_values[0].data["omni-connect-values.yaml"]).castai.apiUrl == var.api_url
+    error_message = "GitOps mode must retain the Cast AI API URL"
+  }
+
+  assert {
+    condition     = yamldecode(kubernetes_config_map_v1.helm_values[0].data["omni-connect-values.yaml"]).castai.apiKey == var.api_token
+    error_message = "GitOps mode must supply the API key for a chart-generated Secret"
+  }
+
+  assert {
+    condition     = !contains(keys(yamldecode(kubernetes_config_map_v1.helm_values[0].data["omni-connect-values.yaml"]).castai), "apiKeySecretRef")
+    error_message = "GitOps mode must not reference the shared omni-agent Secret"
   }
 
   assert {
