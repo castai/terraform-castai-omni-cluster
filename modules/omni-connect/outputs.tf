@@ -1,6 +1,7 @@
 output "helm_values" {
-  description = "Computed provider-specific values used for both Helm and GitOps deployment"
+  description = "Computed provider-specific values used for both Helm and GitOps deployment. Includes sensitive Cast AI API credentials."
   value       = local.helm_values
+  sensitive   = true
 }
 
 output "chart" {
@@ -14,8 +15,9 @@ output "overrides" {
 }
 
 output "values" {
-  description = "Rendered values files in the order direct Helm and GitOps consumers must apply them"
+  description = "Rendered values files in the order direct Helm and GitOps consumers must apply them. Includes sensitive Cast AI API credentials."
   value       = local.values
+  sensitive   = true
 }
 
 output "release" {
